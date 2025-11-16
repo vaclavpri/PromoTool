@@ -3,20 +3,20 @@ Option Explicit
 
 ' ============================================================================
 ' Modul: ProductUtils
-' Popis: Spole�n� funkce pro pr�ci s produkty
+' Popis: Společné funkce pro práci s produkty
 ' ============================================================================
 
 ' ============================================================================
 ' Funkce: GetProductName
-' Popis: Vytvo�� n�zev produktu podle countryCode
+' Popis: Vytvoří název produktu podle countryCode
 '        - Pro SVK: pouze material_name
-'        - Pro ostatn� zem� (CZE): material_name + volume_l
+'        - Pro ostatní země (CZE): material_name + volume_l
 '
 ' Parametry:
-'   rowData      - Dictionary s daty produktu (mus� obsahovat "material_name" a "volume_l")
-'   countryCode  - K�d zem� (nap�. "SVK", "CZE")
+'   rowData      - Dictionary s daty produktu (musí obsahovat "material_name" a "volume_l")
+'   countryCode  - Kód země (např. "SVK", "CZE")
 '
-' N�vratov� hodnota: �et�zec s n�zvem produktu
+' Návratová hodnota: Řetězec s názvem produktu
 ' ============================================================================
 Public Function GetProductName(rowData As Object, countryCode As String) As String
     If UCase(Trim(countryCode)) = "SVK" Then
@@ -28,15 +28,15 @@ End Function
 
 ' ============================================================================
 ' Funkce: GetProductKey
-' Popis: Vytvo�� kl�� produktu pro SAP export (Family + ProductName)
+' Popis: Vytvoří klíč produktu pro SAP export (Family + ProductName)
 '        - Pro SVK: Family + material_name
-'        - Pro ostatn� zem� (CZE): Family + material_name + volume_l
+'        - Pro ostatní země (CZE): Family + material_name + volume_l
 '
 ' Parametry:
-'   rowData      - Dictionary s daty produktu (mus� obsahovat "Family", "material_name" a "volume_l")
-'   countryCode  - K�d zem� (nap�. "SVK", "CZE")
+'   rowData      - Dictionary s daty produktu (musí obsahovat "Family", "material_name" a "volume_l")
+'   countryCode  - Kód země (např. "SVK", "CZE")
 '
-' N�vratov� hodnota: �et�zec s kl��em produktu
+' Návratová hodnota: Řetězec s klíčem produktu
 ' ============================================================================
 Public Function GetProductKey(rowData As Object, countryCode As String) As String
     Dim productName As String
