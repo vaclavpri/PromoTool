@@ -1,7 +1,7 @@
 Attribute VB_Name = "Module1"
-Public Function ValidateRequiredSelections(promoceIndex As Long, priceIndex As Long) As Boolean 'Kontrola, že je vše vybráno v listboxech
+Public Function ValidateRequiredSelections(promoceIndex As Long, priceIndex As Long) As Boolean 'Kontrola, ï¿½e je vï¿½e vybrï¿½no v listboxech
     If promoceIndex = -1 Or priceIndex = -1 Then
-        MsgBox "Nejsou vybrány všechny povinné údaje."
+        MsgBox "Nejsou vybrï¿½ny vï¿½echny povinnï¿½ ï¿½daje."
         ValidateRequiredSelections = False
     Else
         ValidateRequiredSelections = True
@@ -9,18 +9,18 @@ Public Function ValidateRequiredSelections(promoceIndex As Long, priceIndex As L
 End Function
 
 Public Sub CopySelectedProductsToHero(productList As Variant, SelectedItems As Variant, ByRef heroList As Variant, promoceIndex As Long, priceIndex As Long)
-    ' Kontrola povinných údajù
+    ' Kontrola povinnï¿½ch ï¿½dajï¿½
     If promoceIndex = -1 Or priceIndex = -1 Then
-        MsgBox "Nejsou vybrány všechny povinné údaje."
+        MsgBox "Nejsou vybrï¿½ny vï¿½echny povinnï¿½ ï¿½daje."
         Exit Sub
     End If
     
-    ' Vytvoøí seznam hero produktù
+    ' Vytvoï¿½ï¿½ seznam hero produktï¿½
     Dim heroArray() As String
     Dim heroCount As Long
     Dim i As Long
     
-    ' Spoèítá vybrané produkty
+    ' Spoï¿½ï¿½tï¿½ vybranï¿½ produkty
     For i = 0 To UBound(SelectedItems)
         If SelectedItems(i) = True Then
             heroCount = heroCount + 1
@@ -41,18 +41,18 @@ Public Sub CopySelectedProductsToHero(productList As Variant, SelectedItems As V
     heroList = heroArray
 End Sub
 
-' Pomocná funkce pro bezpeèné získání sloupce
+' Pomocnï¿½ funkce pro bezpeï¿½nï¿½ zï¿½skï¿½nï¿½ sloupce
 Public Function GetColumnSafe(ws As Worksheet, rangeName As String) As Long
     On Error Resume Next
     GetColumnSafe = ws.Range(rangeName).Column
     If Err.Number <> 0 Then
-        GetColumnSafe = 1 ' Výchozí sloupec A, pokud range neexistuje
+        GetColumnSafe = 1 ' Vï¿½chozï¿½ sloupec A, pokud range neexistuje
         Err.Clear
     End If
     On Error GoTo 0
 End Function
 
-' Pomocná funkce pro bezpeèný zápis do sloupce
+' Pomocnï¿½ funkce pro bezpeï¿½nï¿½ zï¿½pis do sloupce
 Public Sub WriteToColumnSafe(ws As Worksheet, row As Long, rangeName As String, value As Variant)
     On Error Resume Next
     Dim col As Long
@@ -73,9 +73,20 @@ Public Function GetCustomer(TargetWorkbook As Workbook) As String
     End If
     On Error GoTo 0
 End Function
-' Zjistí vybrané položky v listboxu
+
+' Zï¿½skï¿½ countryCode z Settings listu
+Public Function GetCountryCode(TargetWorkbook As Workbook) As String
+    On Error Resume Next
+    GetCountryCode = Trim(TargetWorkbook.Sheets("Settings").Range("B10").value)
+    On Error GoTo 0
+
+    If GetCountryCode = "" Then
+        GetCountryCode = "CZK"  ' Default
+    End If
+End Function
+' Zjistï¿½ vybranï¿½ poloï¿½ky v listboxu
 Public Function GetSelectedItems(listBox As Object) As Variant
-    ' Spoèítá vybrané položky
+    ' Spoï¿½ï¿½tï¿½ vybranï¿½ poloï¿½ky
     Dim selectedCount As Long
     Dim i As Long
     
@@ -85,13 +96,13 @@ Public Function GetSelectedItems(listBox As Object) As Variant
         End If
     Next i
     
-    ' Pokud nic není vybráno, vrátí prázdné pole
+    ' Pokud nic nenï¿½ vybrï¿½no, vrï¿½tï¿½ prï¿½zdnï¿½ pole
     If selectedCount = 0 Then
-        GetSelectedItems = Array()  ' Prázdné pole
+        GetSelectedItems = Array()  ' Prï¿½zdnï¿½ pole
         Exit Function
     End If
     
-    ' Vytvoøí pole a naplní ho
+    ' Vytvoï¿½ï¿½ pole a naplnï¿½ ho
     Dim SelectedItems() As String
     ReDim SelectedItems(0 To selectedCount - 1)
     
@@ -116,7 +127,7 @@ Public Function GetHeroItem(listBox As Object) As String
     Next i
     GetHeroItem = ""
 End Function
-' Výbìr
+' Vï¿½bï¿½r
 Public Function GetVyberValue(listBox As Object) As String
     Dim allSelected As Boolean
     allSelected = True
@@ -150,14 +161,14 @@ Public Function GetPromoPriceData(familyValue As String, selectedPrice As String
     Dim Priorita As String
     Dim FCname As String
     
-    ' Zkontroluje, zda produkt odpovídá rodinì
+    ' Zkontroluje, zda produkt odpovï¿½dï¿½ rodinï¿½
     If familyValue = productRow("Family") Then
         
-        ' ZMÌNA: Nejdøív zkontrolovat, jestli je to FC
+        ' ZMï¿½NA: Nejdï¿½ï¿½v zkontrolovat, jestli je to FC
         If UCase(Trim(fcType)) = "FC" Then
-            ' Pro FC vrátit jen základní hodnoty
+            ' Pro FC vrï¿½tit jen zï¿½kladnï¿½ hodnoty
             promoValue = productRow("ncd_inc_vat")
-            promoName = selectedPrice  ' Použít vybranou cenu (ANCD, TANCD...)
+            promoName = selectedPrice  ' Pouï¿½ï¿½t vybranou cenu (ANCD, TANCD...)
             zsName = ""
             AFCvalue = ""
             kompValue = ""
@@ -190,7 +201,7 @@ Public Function GetPromoPriceData(familyValue As String, selectedPrice As String
                         kompValue = productRow("tancd1_comp_tcogs_czk_pc")
                         c1Value = productRow("tancd1_c1_l")
                         ZSvalue = productRow("tancd1_rebate")
-                        Priorita = "Taktická"
+                        Priorita = "Taktickï¿½"
                     Else
                         promoValue = productRow("ancd_inc_vat")
                         promoName = "ANCD"
@@ -211,7 +222,7 @@ Public Function GetPromoPriceData(familyValue As String, selectedPrice As String
                         kompValue = productRow("tancd2_comp_tcogs2_czk_pc")
                         c1Value = productRow("tancd2_c1_l")
                         ZSvalue = productRow("tancd2_rebate")
-                        Priorita = "Taktická"
+                        Priorita = "Taktickï¿½"
                     ElseIf productRow("tancd1_inc_vat") <> 0 Then
                         promoValue = productRow("tancd1_inc_vat")
                         promoName = "TANCD"
@@ -220,7 +231,7 @@ Public Function GetPromoPriceData(familyValue As String, selectedPrice As String
                         kompValue = productRow("tancd1_comp_tcogs_czk_pc")
                         c1Value = productRow("tancd1_c1_l")
                         ZSvalue = productRow("tancd1_rebate")
-                        Priorita = "Taktická"
+                        Priorita = "Taktickï¿½"
                     Else
                         promoValue = productRow("ancd_inc_vat")
                         promoName = "ANCD"
@@ -241,7 +252,7 @@ Public Function GetPromoPriceData(familyValue As String, selectedPrice As String
                         kompValue = productRow("tancd3_comp_tcogs3_czk_pc")
                         c1Value = productRow("tancd3_c1_l")
                         ZSvalue = productRow("tancd3_rebate")
-                        Priorita = "Taktická"
+                        Priorita = "Taktickï¿½"
                     ElseIf productRow("tancd2_inc_vat") <> 0 Then
                         promoValue = productRow("tancd2_inc_vat")
                         promoName = "TANCDII"
@@ -250,7 +261,7 @@ Public Function GetPromoPriceData(familyValue As String, selectedPrice As String
                         kompValue = productRow("tancd2_comp_tcogs2_czk_pc")
                         c1Value = productRow("tancd2_c1_l")
                         ZSvalue = productRow("tancd2_rebate")
-                        Priorita = "Taktická"
+                        Priorita = "Taktickï¿½"
                     ElseIf productRow("tancd1_inc_vat") <> 0 Then
                         promoValue = productRow("tancd1_inc_vat")
                         promoName = "TANCD"
@@ -259,7 +270,7 @@ Public Function GetPromoPriceData(familyValue As String, selectedPrice As String
                         kompValue = productRow("tancd1_comp_tcogs_czk_pc")
                         c1Value = productRow("tancd1_c1_l")
                         ZSvalue = productRow("tancd1_rebate")
-                        Priorita = "Taktická"
+                        Priorita = "Taktickï¿½"
                     Else
                         promoValue = productRow("ancd_inc_vat")
                         promoName = "ANCD"
@@ -303,7 +314,7 @@ Public Sub FillSelectedProductsToTextList(TargetWorkbook As Workbook, selectedPr
     Call UnlockText(TargetWorkbook)
     Call RemoveFilterIfApplied(TargetWorkbook)
 
-    ' Pøidá pouze vybrané produkty
+    ' Pï¿½idï¿½ pouze vybranï¿½ produkty
     Dim productsCol As Collection
     Set productsCol = GetProductsCollection()
 
@@ -313,7 +324,7 @@ Public Sub FillSelectedProductsToTextList(TargetWorkbook As Workbook, selectedPr
     End If
 
     If productsCol.Count = 0 Then
-        MsgBox "Žádná data k naètení!"
+        MsgBox "ï¿½ï¿½dnï¿½ data k naï¿½tenï¿½!"
         Exit Sub
     End If
 
@@ -324,20 +335,20 @@ Public Sub FillSelectedProductsToTextList(TargetWorkbook As Workbook, selectedPr
 
     If firstEmptyRow <= 2 Then firstEmptyRow = 3
 
-    ' Rozdìlit text podle èárky
+    ' Rozdï¿½lit text podle ï¿½ï¿½rky
     Dim PcsArray() As String
     PcsArray = Split(pcsPlanText, ",")
     Dim j As Long
     j = 0
 
-    ' Projde vybrané produkty
+    ' Projde vybranï¿½ produkty
     Dim selectedProduct As Variant
     Dim rowData As Object
 
     For Each selectedProduct In selectedProducts
         For Each rowData In productsCol
         
-            ' Podle countryCode rozhodnout formát
+            ' Podle countryCode rozhodnout formï¿½t
             Dim productName As String
             If UCase(Trim(countryCode)) = "SVK" Then
                 productName = rowData("material_name")
@@ -395,14 +406,14 @@ Public Sub FillSelectedProductsToTextList(TargetWorkbook As Workbook, selectedPr
                         WriteToColumnSafe textList, firstEmptyRow, "tHero", "N"
                     End If
 
-                    ' Poznámka - writes "Plán" if CB_Plan is checked
+                    ' Poznï¿½mka - writes "Plï¿½n" if CB_Plan is checked
                     If isPlan Then
-                        WriteToColumnSafe textList, firstEmptyRow, "tPotvrzeno", "Plán"
+                        WriteToColumnSafe textList, firstEmptyRow, "tPotvrzeno", "Plï¿½n"
                     Else
                         WriteToColumnSafe textList, firstEmptyRow, "tPotvrzeno", ""
                     End If
                     
-                    ' Zápis komentáøe z TB_Comment
+                    ' Zï¿½pis komentï¿½ï¿½e z TB_Comment
                     WriteToColumnSafe textList, firstEmptyRow, "tPozn", commentText
 
                     WriteToColumnSafe textList, firstEmptyRow, "tDiff", "=(" & Range("tRealPromoPrice").Cells(firstEmptyRow, 1).Address(False, False) & "/" & Range("tPromoPrice").Cells(firstEmptyRow, 1).Address(False, False) & ")-1"
@@ -431,21 +442,21 @@ Public Function GetPLastRow() As Long
 End Function
 
 Public Function GetProductValue(rowIndex As Long, columnName As String) As Variant
-    ' Získá produkt podle indexu v kolekci
+    ' Zï¿½skï¿½ produkt podle indexu v kolekci
     Dim productsCol As Collection
     Set productsCol = GetProductsCollection()
     
-    ' Kontrola, zda index je platný
+    ' Kontrola, zda index je platnï¿½
     If rowIndex < 1 Or rowIndex > productsCol.Count Then
         GetProductValue = ""
         Exit Function
     End If
     
-    ' Získání øádku produktu
+    ' Zï¿½skï¿½nï¿½ ï¿½ï¿½dku produktu
     Dim productRow As Object
     Set productRow = productsCol(rowIndex)
     
-    ' Vrácení hodnoty podle názvu sloupce
+    ' Vrï¿½cenï¿½ hodnoty podle nï¿½zvu sloupce
     Select Case LCase(columnName)
         Case "family"
             If productRow.Exists("Family") Then
@@ -466,7 +477,7 @@ Public Function GetProductValue(rowIndex As Long, columnName As String) As Varia
                 GetProductValue = ""
             End If
         Case Else
-            ' Pokusí se najít sloupec podle pøesného názvu
+            ' Pokusï¿½ se najï¿½t sloupec podle pï¿½esnï¿½ho nï¿½zvu
             If productRow.Exists(columnName) Then
                 GetProductValue = productRow(columnName)
             Else
@@ -482,21 +493,21 @@ Public Sub ShowUserForm2(TargetWorkbook As Workbook, selectedAddress As String)
     Debug.Print "TargetWorkbook: " & TargetWorkbook.Name
     Debug.Print "selectedAddress: " & selectedAddress
     
-    ' Najít aktivní list v TargetWorkbook
+    ' Najï¿½t aktivnï¿½ list v TargetWorkbook
     Dim ws As Worksheet
     Set ws = TargetWorkbook.ActiveSheet
     
-    ' Pøevést adresu zpìt na Range
+    ' Pï¿½evï¿½st adresu zpï¿½t na Range
     Dim SelectedRange As Range
     Set SelectedRange = ws.Range(selectedAddress)
     
     Debug.Print "SelectedRange: " & SelectedRange.Address
     
-    ' Vytvoøit novou instanci UserForm2
+    ' Vytvoï¿½it novou instanci UserForm2
     Dim uf As UserForm2
     Set uf = New UserForm2
     
-    ' Pøedat odkazy
+    ' Pï¿½edat odkazy
     Set uf.TargetWorkbook = TargetWorkbook
     Set uf.SelectedRange = SelectedRange
     
@@ -517,17 +528,17 @@ Public Sub PridejVybraneHeroProdukty(UserForm As Object, selectedPrice As String
     
     Debug.Print "=== PridejVybraneHeroProdukty START ==="
     
-    ' Naèíst produkty
+    ' Naï¿½ï¿½st produkty
     Call ProductsArray(TargetWorkbook)
    
-    ' Získat vybrané produkty z UserFormu
+    ' Zï¿½skat vybranï¿½ produkty z UserFormu
     Dim selectedProducts As Variant
     selectedProducts = GetSelectedItems(UserForm.LB_Product)
     
     ' Debug
     Debug.Print "TypeName: " & TypeName(selectedProducts)
     If IsArray(selectedProducts) Then
-        Debug.Print "Poèet produktù: " & (UBound(selectedProducts) - LBound(selectedProducts) + 1)
+        Debug.Print "Poï¿½et produktï¿½: " & (UBound(selectedProducts) - LBound(selectedProducts) + 1)
         Dim i As Long
         For i = LBound(selectedProducts) To UBound(selectedProducts)
             Debug.Print "Produkt " & i & ": " & selectedProducts(i)
@@ -540,13 +551,13 @@ Public Sub PridejVybraneHeroProdukty(UserForm As Object, selectedPrice As String
     Debug.Print "Family: " & familyValue
     Debug.Print "FC Type: " & fcType
     
-    ' Naète countryCode z Settings
+    ' Naï¿½te countryCode z Settings
     If Trim(countryCode) = "" Then
         countryCode = "CZK"  ' Default
     End If
     
     Debug.Print "Country Code: " & countryCode
-    Debug.Print "=== DEBUG PØED VOLÁNÍM ==="
+    Debug.Print "=== DEBUG Pï¿½ED VOLï¿½Nï¿½M ==="
     
     Call FillSelectedProductsToTextList(TargetWorkbook, selectedProducts, familyValue, selectedPrice, PromoObj, heroProduct, promoID, vyberValue, pcsPlanText, isPlan, fcType, countryCode, commentText)
     Debug.Print "=== PridejVybraneHeroProdukty END ==="
@@ -567,7 +578,7 @@ Public Sub GetWeekIntervalsFromSelection(SelectedRange As Range, ByRef weekInter
     weekRowNumber = FindWeekRow(ws)
 
     If weekRowNumber = 0 Then
-        Err.Raise vbObjectError + 2, "GetWeekIntervalsFromSelection", "Øádek s komentáøem 'WeekRow' nebyl nalezen!"
+        Err.Raise vbObjectError + 2, "GetWeekIntervalsFromSelection", "ï¿½ï¿½dek s komentï¿½ï¿½em 'WeekRow' nebyl nalezen!"
     End If
 
     weekRowNumberT = weekRowNumber - 1
