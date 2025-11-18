@@ -1,70 +1,68 @@
 Attribute VB_Name = "UpdatePrices"
 ' ===================================================================
-' UpdatePrices_Shared - S automatick˝m p¯id·v·nÌm/maz·nÌm produkt˘
+' UpdatePrices_Shared - S automatick√Ωm p≈ôid√°v√°n√≠m/maz√°n√≠m produkt≈Ø
 ' ===================================================================
 Public Sub UpdatePrices_Shared(TargetWorkbook As Workbook, SelectedRange As Range, fcType As String, countryCode As String)
     On Error GoTo ErrorHandler
     
     Debug.Print "=== UpdatePrices_Shared START ==="
-        
-    On Error Resume Next
-    countryCode = Trim(TargetWorkbook.Sheets("Settings").Range("B10").value)
-    On Error GoTo ErrorHandler
-    
+
+    ' Naƒç√≠st countryCode z Settings
+    countryCode = GetCountryCode(TargetWorkbook)
+
     If fcType = "" Then fcType = "AFC"  ' Default
-    If countryCode = "" Then countryCode = "CZK"  ' Default
     
     Debug.Print "FC Type: " & fcType
     Debug.Print "Country Code: " & countryCode
     
-    ' 1. ODEMKNUTÕ
+    ' 1. ODEMKNUTÔøΩ
     Call UnlockText(TargetWorkbook)
     Call RemoveFilterIfApplied(TargetWorkbook)
     
-    ' 2. KONTROLA V›BÃRU
+    ' 2. KONTROLA VÔøΩB√çRU
     If SelectedRange Is Nothing Then
-        MsgBox "NenÌ vybr·n û·dn˝ rozsah!", vbCritical
+        MsgBox "Nen√≠ vybr√°n ≈æ√°dn√© rozsah!", vbCritical
         Call LockText(TargetWorkbook)
         Exit Sub
     End If
     
-    ' 3. NA»TENÕ DAT Z PRICELIST
+    ' 3. NAÔøΩTEN√≠ DAT Z PRICELIST
     Call ProductsArray(TargetWorkbook)
     
     Dim productsCol As Collection
     Set productsCol = GetProductsCollection()
     
     If productsCol Is Nothing Or productsCol.Count = 0 Then
-        MsgBox "Nepoda¯ilo se naËÌst data z PriceList!", vbCritical
+        MsgBox "Nepoda≈ôilo se naƒç√≠st data z PriceList!", vbCritical
         Call LockText(TargetWorkbook)
         Exit Sub
     End If
     
-    Debug.Print "NaËteno produkt˘: " & productsCol.Count
+    Debug.Print "Naƒçteno produkt≈Ø: " & productsCol.Count
     
     ' 4. REFERENCE NA LIST TEXT
     Dim textList As Worksheet
     Set textList = TargetWorkbook.Sheets("Text")
     
-    ' 5. ZJIäTÃNÕ VYBRAN›CH ÿ¡DKŸ
+    ' 5. ZJI≈†TƒöN√ç VYBRAN√ùCH ≈ò√ÅDK≈Æ
     Dim rowsToUpdate As Collection
     Set rowsToUpdate = GetSelectedRows(SelectedRange, textList)
     
     If rowsToUpdate.Count = 0 Then
-        MsgBox "Nebyly vybr·ny û·dnÈ platnÈ ¯·dky!", vbExclamation
+        MsgBox "Nebyly vybr√°ny ≈æ√°dn√© platn√≠ ≈ô√°dky!", vbExclamation
         Call LockText(TargetWorkbook)
         Exit Sub
     End If
     
-    Debug.Print "PoËet ¯·dk˘ k aktualizaci: " & rowsToUpdate.Count
+    Debug.Print "Po≈æet ≈ô√≠dk√≠ k aktualizaci: " & rowsToUpdate.Count
     
-   ' 6. SESKUPIT ÿ¡DKY PODLE PromoID
+   ' 6. SESKUPIT ≈ô√≠DKY PODLE PromoID
     Dim promoGroups As Object
     Set promoGroups = GroupRowsByPromoID(textList, rowsToUpdate)
     
-    Debug.Print "PoËet unik·tnÌch promocÌ: " & promoGroups.Count
+    Debug.Print "Po≈æet unik√≠tn√≠ch promoc√≠: " & promoGroups.Count
 
-    ' 7. ZPRACOVAT KAéDOU PROMOCI
+    ' 7. ZPRACOVAT KAÔøΩDOU PROMOCI
     Dim promoID As Variant
     Dim updatedCount As Long, addedCount As Long, deletedCount As Long, notFoundCount As Long
     updatedCount = 0
@@ -73,15 +71,15 @@ Public Sub UpdatePrices_Shared(TargetWorkbook As Workbook, SelectedRange As Rang
     notFoundCount = 0
     
     For Each promoID In promoGroups.Keys
-        Debug.Print "Zpracov·v·m PromoID: " & promoID
+        Debug.Print "ZpracovÔøΩv√Ωm PromoID: " & promoID
         
-        ' P¯evÈst string ¯·dk˘ na Collection
+        ' P≈æev√©st string ≈ô√≠dk√≠ na Collection
         Dim promoRows As Collection
         Set promoRows = StringToCollection(CStr(promoGroups(promoID)))
         
-        Debug.Print "  PoËet ¯·dk˘ v tÈto promoci: " & promoRows.Count
+        Debug.Print "  Po≈æet ≈ô√≠dk√≠ v t√©to promoci: " & promoRows.Count
         
-        ' ZMÃNA: P¯edat fcType a countryCode
+        ' ZMƒöNA: P≈æedat fcType a countryCode
         Dim result As Variant
         result = ProcessPromoGroup(textList, promoRows, productsCol, CStr(promoID), fcType, countryCode)
         
@@ -91,18 +89,18 @@ Public Sub UpdatePrices_Shared(TargetWorkbook As Workbook, SelectedRange As Rang
         notFoundCount = notFoundCount + result(3)
     Next promoID
         
-    ' 8. FIN¡LNÕ ⁄PRAVY
+    ' 8. FINÔøΩLN√≠ √öPRAVY
     Call ApplyFilterToRow2(TargetWorkbook)
     Call SortIt(TargetWorkbook)
     Call rColor(TargetWorkbook)
     Call LockText(TargetWorkbook)
         
     Debug.Print "=== UpdatePrices_Shared END ==="
-    MsgBox "Aktualizace dokonËena:" & vbCrLf & _
-           "- Aktualizov·no: " & updatedCount & " ¯·dk˘" & vbCrLf & _
-           "- P¯id·no: " & addedCount & " ¯·dk˘" & vbCrLf & _
-           "- Smaz·no: " & deletedCount & " ¯·dk˘" & vbCrLf & _
-           "- Nenalezeno v PriceList: " & notFoundCount & " ¯·dk˘", vbInformation
+    MsgBox "Aktualizace dokon≈æena:" & vbCrLf & _
+           "- Aktualizov√°no: " & updatedCount & " ≈ô√≠dkÔøΩ" & vbCrLf & _
+           "- P≈ôid√°no: " & addedCount & " ≈ô√≠dkÔøΩ" & vbCrLf & _
+           "- Smaz√°no: " & deletedCount & " ≈ô√≠dkÔøΩ" & vbCrLf & _
+           "- Nenalezeno v PriceList: " & notFoundCount & " ≈ô√≠dkÔøΩ", vbInformation
     Exit Sub
     
 ErrorHandler:
@@ -112,7 +110,7 @@ ErrorHandler:
 End Sub
 
 ' ===================================================================
-' GroupRowsByPromoID - S explicitnÌm zach·zenÌm s typy
+' GroupRowsByPromoID - S explicitn√≠m zach√°zen√≠m s typy
 ' ===================================================================
 Private Function GroupRowsByPromoID(textList As Worksheet, rowsToUpdate As Collection) As Object
     Set GroupRowsByPromoID = CreateObject("Scripting.Dictionary")
@@ -122,14 +120,14 @@ Private Function GroupRowsByPromoID(textList As Worksheet, rowsToUpdate As Colle
     
     Dim rowNum As Variant
     Dim promoID As String
-    Dim promoIDKey As Variant  ' Pro pouûitÌ jako klÌË v Dictionary
+    Dim promoIDKey As Variant  ' Pro pou≈æit√≠ jako kl√≠ƒç v Dictionary
     Dim currentValue As Variant
     
     For Each rowNum In rowsToUpdate
         promoID = Trim(CStr(textList.Cells(CLng(rowNum), promoIDCol).value))
         
         If promoID <> "" Then
-            promoIDKey = promoID  ' P¯evod na Variant
+            promoIDKey = promoID  ' P≈æevod na Variant
             
             If Not GroupRowsByPromoID.Exists(promoIDKey) Then
                 GroupRowsByPromoID.Add promoIDKey, CStr(rowNum)
@@ -142,7 +140,7 @@ Private Function GroupRowsByPromoID(textList As Worksheet, rowsToUpdate As Colle
 End Function
 
 ' ===================================================================
-' Pomocn· funkce - P¯evod stringu na Collection
+' Pomocn√° funkce - P≈æevod stringu na Collection
 ' ===================================================================
 Private Function StringToCollection(rowsString As String) As Collection
     Set StringToCollection = New Collection
@@ -157,7 +155,7 @@ Private Function StringToCollection(rowsString As String) As Collection
 End Function
 
 ' ===================================================================
-' Zpracov·nÌ jednÈ promoce (skupina ¯·dk˘ se stejn˝m PromoID)
+' Zpracov√°n√≠ jedn√≠ promoce (skupina ≈ô√≠dk√≠ se stejn√Ωm PromoID)
 ' ===================================================================
 Private Function ProcessPromoGroup(textList As Worksheet, promoRows As Collection, productsCol As Collection, promoID As String, fcType As String, countryCode As String) As Variant
     Dim updatedCount As Long, addedCount As Long, deletedCount As Long, notFoundCount As Long
@@ -166,7 +164,7 @@ Private Function ProcessPromoGroup(textList As Worksheet, promoRows As Collectio
     deletedCount = 0
     notFoundCount = 0
     
-    ' 1. ZÕSKAT FAMILY a tVyber z prvnÌho ¯·dku
+    ' 1. Z√çSKAT FAMILY a tVyber z prvn√≠ho ≈ô√°dku
     Dim firstRow As Long
     firstRow = promoRows(1)
     
@@ -178,14 +176,14 @@ Private Function ProcessPromoGroup(textList As Worksheet, promoRows As Collectio
     
     Debug.Print "  Family: " & familyValue & ", tVyber: " & vyberValue
     
-    ' 2. NAJÕT VäECHNY PRODUKTY V T…TO FAMILY V PRICELIST
+    ' 2. NAJ√çT VÔøΩECHNY PRODUKTY V TÔøΩTO FAMILY V PRICELIST
     Dim familyProducts As Collection
     Set familyProducts = GetProductsByFamily(productsCol, familyValue)
     
-    Debug.Print "  Produkt˘ v PriceList pro Family " & familyValue & ": " & familyProducts.Count
-    Debug.Print "  Produkt˘ v Text: " & promoRows.Count
+    Debug.Print "  Produkt√≠ v PriceList pro Family " & familyValue & ": " & familyProducts.Count
+    Debug.Print "  Produkt√≠ v Text: " & promoRows.Count
     
-    ' 3. ZÕSKAT EXISTUJÕCÕ PRODUKTY V PROMOCI
+    ' 3. Z√çSKAT EXISTUJ√çC√ç PRODUKTY V PROMOCI
     Dim existingProducts As Object  ' Dictionary: productName -> rowNumber
     Set existingProducts = CreateObject("Scripting.Dictionary")
     
@@ -198,15 +196,15 @@ Private Function ProcessPromoGroup(textList As Worksheet, promoRows As Collectio
         End If
     Next rowNum
     
-    ' 4. AKTUALIZOVAT EXISTUJÕCÕ + NAJÕT PRODUKTY K PÿID¡NÕ/SMAZ¡NÕ
+    ' 4. AKTUALIZOVAT EXISTUJ√çC√ç + NAJ√çT PRODUKTY K P≈òID√ÅN√ç/SMAZ√ÅN√ç
     Dim productsToAdd As Collection
     Set productsToAdd = New Collection
     
     Dim productsToDelete As Collection
     Set productsToDelete = New Collection
     
-    ' ProjÌt produkty v PriceList
-' ProjÌt produkty v PriceList
+    ' Proj√≠t produkty v PriceList
+' Proj√≠t produkty v PriceList
 Dim productRow As Object
 For Each productRow In familyProducts
     Dim productFullName As String
@@ -221,7 +219,7 @@ For Each productRow In familyProducts
     Debug.Print "    Kontroluji produkt z PriceList: " & productFullName
     
     If existingProducts.Exists(productFullName) Then
-        ' Produkt existuje õ AKTUALIZOVAT
+        ' Produkt existuje √≠ AKTUALIZOVAT
         Debug.Print "      Existuje v Text - AKTUALIZUJI"
         Dim targetRow As Long
         targetRow = existingProducts(productFullName)
@@ -240,40 +238,40 @@ For Each productRow In familyProducts
         Debug.Print "      tVyber: " & vyberValue
         
         If UCase(vyberValue) = "N" Then
-            Debug.Print "      >>> PÿID¡M (tVyber = N)"
+            Debug.Print "      >>> P≈òID√ÅM (tVyber = N)"
             productsToAdd.Add productRow
         Else
-            Debug.Print "      Nep¯id·v·m (tVyber = " & vyberValue & ")"
+            Debug.Print "      Nep≈ôid√°v√Ωm (tVyber = " & vyberValue & ")"
         End If
     End If
 Next productRow
 
-Debug.Print "  Produkty k p¯id·nÌ: " & productsToAdd.Count
+Debug.Print "  Produkty k p≈ôid√°n√≠: " & productsToAdd.Count
     
-    ' Co zbylo v existingProducts = produkty K SMAZ¡NÕ (nejsou v PriceList)
+    ' Co zbylo v existingProducts = produkty K SMAZ√ÅN√ç (nejsou v PriceList)
     Dim productToDelete As Variant
     For Each productToDelete In existingProducts.Keys
         productsToDelete.Add existingProducts(productToDelete)
     Next productToDelete
     
-    ' 5. PÿIDAT NOV… PRODUKTY (pouze pokud tVyber = "N")
+    ' 5. P≈òIDAT NOV√â PRODUKTY (pouze pokud tVyber = "N")
     If UCase(vyberValue) = "N" And productsToAdd.Count > 0 Then
-        Debug.Print "  P¯id·v·m " & productsToAdd.Count & " nov˝ch produkt˘..."
+        Debug.Print "  P≈ôid√°v√°m " & productsToAdd.Count & " nov√Ωch produkt≈Ø..."
         addedCount = AddNewProducts(textList, productsToAdd, firstRow, promoID, countryCode)
     End If
     
-    ' 6. SMAZAT NEEXISTUJÕCÕ PRODUKTY
+    ' 6. SMAZAT NEEXISTUJ√çC√ç PRODUKTY
     If productsToDelete.Count > 0 Then
-        Debug.Print "  Maûu " & productsToDelete.Count & " neexistujÌcÌch produkt˘..."
+        Debug.Print "  Ma≈æu " & productsToDelete.Count & " neexistuj√≠c√≠ch produkt≈Ø..."
         deletedCount = DeleteProducts(textList, productsToDelete)
     End If
     
-    ' Vr·tit statistiky
+    ' Vr√≠tit statistiky
     ProcessPromoGroup = Array(updatedCount, addedCount, deletedCount, notFoundCount)
 End Function
 
 ' ===================================================================
-' ZÌsk·nÌ vöech produkt˘ z danÈ Family
+' Z√≠sk√°n√≠ v≈°ech produkt≈Ø z dan√© Family
 ' ===================================================================
 Private Function GetProductsByFamily(productsCol As Collection, familyValue As String) As Collection
     Set GetProductsByFamily = New Collection
@@ -287,12 +285,12 @@ Private Function GetProductsByFamily(productsCol As Collection, familyValue As S
 End Function
 
 ' ===================================================================
-' P¯id·nÌ nov˝ch produkt˘
+' P≈ôid√°n√≠ nov√Ωch produkt≈Ø
 ' ===================================================================
 Private Function AddNewProducts(textList As Worksheet, productsToAdd As Collection, templateRow As Long, promoID As String, countryCode As String) As Long
     AddNewProducts = 0
     
-    ' OPRAVA: NaËÌst fcType z tFCtype se spr·vnou kontrolou
+    ' OPRAVA: Naƒç√≠st fcType z tFCtype se spr√°vnou kontrolou
     Dim fcType As String
     Dim fcTypeCol As Long
     fcTypeCol = GetColumnSafe(textList, "tFCtype")
@@ -304,18 +302,18 @@ Private Function AddNewProducts(textList As Worksheet, productsToAdd As Collecti
         Debug.Print "  Hodnota v templateRow " & templateRow & ": '" & fcType & "'"
     Else
         fcType = ""
-        Debug.Print "  VAROV¡NÕ: Sloupec tFCtype nenalezen!"
+        Debug.Print "  VAROV√ÅN√çÔøΩ: Sloupec tFCtype nenalezen!"
     End If
     
-    ' Default hodnota pokud je pr·zdnÈ
+    ' Default hodnota pokud je pr√°zdn√©
     If fcType = "" Or fcType = "0" Then
         fcType = "AFC"
-        Debug.Print "  Pouûit default fcType: AFC"
+        Debug.Print "  Pou≈æit default fcType: AFC"
     End If
     
-    Debug.Print "  fcType pro novÈ produkty: " & fcType
+    Debug.Print "  fcType pro nov√≠ produkty: " & fcType
     
-    ' NajÌt poslednÌ ¯·dek
+    ' Naj√≠t posledn√≠ ≈ô√°dek
     Dim lastRow As Long
     lastRow = textList.Cells(textList.rows.Count, GetColumnSafe(textList, "tProduct")).End(xlUp).row
     
@@ -324,7 +322,7 @@ Private Function AddNewProducts(textList As Worksheet, productsToAdd As Collecti
     
     Dim productRow As Object
     For Each productRow In productsToAdd
-        ' ZkopÌrovat form·t z templateRow
+        ' Zkop√≠rovat form√°t z templateRow
         textList.rows(templateRow).Copy
         textList.rows(newRow).PasteSpecial xlPasteFormats
         Application.CutCopyMode = False
@@ -337,9 +335,9 @@ Private Function AddNewProducts(textList As Worksheet, productsToAdd As Collecti
             productName = productRow("material_name") & " " & productRow("volume_l")
         End If
         
-        Debug.Print "    P¯id·v·m: " & productName
+        Debug.Print "    P≈ôid√°v√°m: " & productName
         
-        ' Z·kladnÌ ˙daje
+        ' Z√°kladn√≠ √∫daje
         Call WriteToColumnSafe(textList, newRow, "tProduct", productName)
         Call WriteToColumnSafe(textList, newRow, "tCustomerID", productRow("CustomerID"))
         Call WriteToColumnSafe(textList, newRow, "tEAN", "'" & productRow("ean"))
@@ -350,7 +348,7 @@ Private Function AddNewProducts(textList As Worksheet, productsToAdd As Collecti
         Call WriteToColumnSafe(textList, newRow, "tCategory", productRow("category"))
         Call WriteToColumnSafe(textList, newRow, "tPromoID", promoID)
         
-        ' Ceny - zÌskat z GetPromoPriceData
+        ' Ceny - z√≠skat z GetPromoPriceData
         Dim familyValue As String
         familyValue = Trim(textList.Cells(templateRow, GetColumnSafe(textList, "tFamily")).value)
         
@@ -358,7 +356,7 @@ Private Function AddNewProducts(textList As Worksheet, productsToAdd As Collecti
         priceType = Trim(textList.Cells(templateRow, GetColumnSafe(textList, "tPriceType")).value)
         If priceType = "" Then priceType = "ANCD"
         
-        ' Vol·nÌ GetPromoPriceData s fcType
+        ' VolÔøΩn√≠ GetPromoPriceData s fcType
         Dim result As Variant
         result = GetPromoPriceData(familyValue, priceType, productRow, fcType)
         
@@ -375,10 +373,10 @@ Private Function AddNewProducts(textList As Worksheet, productsToAdd As Collecti
         Call WriteToColumnSafe(textList, newRow, "tFC", productRow("ncd_invoice"))
         Call WriteToColumnSafe(textList, newRow, "tNCD", productRow("ncd_inc_vat"))
         
-        ' ZkopÌrovat dalöÌ ˙daje z templateRow (datumy, t˝dny, atd.)
+        ' Zkop√≠rovat dal≈°√≠ √∫daje z templateRow (datumy, t√Ωdny, atd.)
         Call CopyPromotionData(textList, templateRow, newRow)
         
-        ' ZkopÌrovat tDiff, tVol, tOfftakeTotal, tC1Total z JIN…HO ¯·dku ve Family
+        ' Zkop√≠rovat tDiff, tVol, tOfftakeTotal, tC1Total z JIN√âHO ≈ô√°dku ve Family
         Call CopyFamilySpecificData(textList, newRow, familyValue, promoID)
         
         AddNewProducts = AddNewProducts + 1
@@ -387,41 +385,41 @@ Private Function AddNewProducts(textList As Worksheet, productsToAdd As Collecti
 End Function
 
 ' ===================================================================
-' KopÌrov·nÌ dat specifick˝ch pro Family - S VZORCI
+' Kop√≠rov√°n√≠ dat specifick√Ωch pro Family - S VZORCI
 ' ===================================================================
 Private Sub CopyFamilySpecificData(textList As Worksheet, targetRow As Long, familyValue As String, promoID As String)
     On Error Resume Next
     
-    Debug.Print "      KopÌruji Family-specific data pro ¯·dek " & targetRow
+    Debug.Print "      Kop√°≈ôuji Family-specific data pro ≈ô√°dek " & targetRow
     
-    ' NajÌt jin˝ ¯·dek se stejnou Family a PromoID (ale ne targetRow)
+    ' Naj√≠t jin√≠ ≈ô√°dek se stejnou Family a PromoID (ale ne targetRow)
     Dim sourceRow As Long
     sourceRow = FindFamilySourceRow(textList, familyValue, promoID, targetRow)
     
     If sourceRow = 0 Then
-        Debug.Print "      VAROV¡NÕ: Nenalezen zdrojov˝ ¯·dek pro Family " & familyValue
+        Debug.Print "      VAROV√ÅN√çÔøΩ: Nenalezen zdrojov√≠ ≈ô√°dek pro Family " & familyValue
         Exit Sub
     End If
     
-    Debug.Print "      Zdrojov˝ ¯·dek: " & sourceRow
+    Debug.Print "      Zdrojov√≠ ≈ô√°dek: " & sourceRow
     
-    ' ZkopÌrovat VZORCE (ne hodnoty)
+    ' Zkop√≠rovat VZORCE (ne hodnoty)
     Call CopyFormulaToRow(textList, sourceRow, targetRow, "tDiff")
     Call CopyFormulaToRow(textList, sourceRow, targetRow, "tVol")
     Call CopyFormulaToRow(textList, sourceRow, targetRow, "tOfftakeTotal")
     Call CopyFormulaToRow(textList, sourceRow, targetRow, "tC1Total")
     
-    ' tPriceType je hodnota (ne vzorec), kopÌrovat norm·lnÏ
+    ' tPriceType je hodnota (ne vzorec), kop√°≈ôovat norm√°ln√≠
     Call WriteToColumnSafe(textList, targetRow, "tPriceType", _
         textList.Cells(sourceRow, GetColumnSafe(textList, "tPriceType")).value)
     
-    Debug.Print "      Family data zkopÌrov·na"
+    Debug.Print "      Family data zkop√°≈ôov√°na"
     
     On Error GoTo 0
 End Sub
 
 ' ===================================================================
-' KopÌrov·nÌ vzorce s ˙pravou ËÌsla ¯·dku
+' Kop√≠rov√°n√≠ vzorce s √∫pravou ≈ô√≠sla ≈ô√°dku
 ' ===================================================================
 Private Sub CopyFormulaToRow(ws As Worksheet, sourceRow As Long, targetRow As Long, rangeName As String)
     On Error Resume Next
@@ -430,7 +428,7 @@ Private Sub CopyFormulaToRow(ws As Worksheet, sourceRow As Long, targetRow As Lo
     sourceCol = GetColumnSafe(ws, rangeName)
     
     If sourceCol = 0 Or sourceCol = 1 Then
-        Debug.Print "        VAROV¡NÕ: Sloupec " & rangeName & " nebyl nalezen"
+        Debug.Print "        VAROV√ÅN√çÔøΩ: Sloupec " & rangeName & " nebyl nalezen"
         Exit Sub
     End If
     
@@ -440,53 +438,53 @@ Private Sub CopyFormulaToRow(ws As Worksheet, sourceRow As Long, targetRow As Lo
     Dim targetCell As Range
     Set targetCell = ws.Cells(targetRow, sourceCol)
     
-    ' Zkontrolovat, zda zdrojov· buÚka obsahuje vzorec
+    ' Zkontrolovat, zda zdrojov√≠ bu≈àka obsahuje vzorec
     If sourceCell.HasFormula Then
-        ' ZkopÌrovat vzorec a upravit ËÌslo ¯·dku
+        ' Zkop√≠rovat vzorec a upravit ≈ô√≠slo ≈ô√°dku
         Dim originalFormula As String
         Dim adjustedFormula As String
         
         originalFormula = sourceCell.formula
         
-        ' Nahradit vöechny v˝skyty zdrojovÈho ¯·dku cÌlov˝m ¯·dkem
+        ' Nahradit v≈°echny v√Ωskyty zdrojov√≠ho ≈ô√°dku c√≠lov√Ωm ≈ô√≠dkem
         adjustedFormula = ReplaceRowReferences(originalFormula, sourceRow, targetRow)
         
         targetCell.formula = adjustedFormula
-        Debug.Print "        " & rangeName & ": ZkopÌrov·n a upraven vzorec"
-        Debug.Print "          P˘vodnÌ: " & originalFormula
-        Debug.Print "          Nov˝: " & adjustedFormula
+        Debug.Print "        " & rangeName & ": Zkop√°≈ôov√°n a upraven vzorec"
+        Debug.Print "          PÔøΩvodn√≠: " & originalFormula
+        Debug.Print "          NovÔøΩ: " & adjustedFormula
     Else
-        ' Pokud nenÌ vzorec, zkopÌrovat hodnotu
+        ' Pokud nen√≠ vzorec, zkop√≠rovat hodnotu
         targetCell.value = sourceCell.value
-        Debug.Print "        " & rangeName & ": ZkopÌrov·na hodnota (û·dn˝ vzorec)"
+        Debug.Print "        " & rangeName & ": Zkop√°≈ôov√°na hodnota (≈æ√°dn√© vzorec)"
     End If
     
     On Error GoTo 0
 End Sub
 
 ' ===================================================================
-' NahrazenÌ odkaz˘ na ¯·dky ve vzorci
+' Nahrazen√≠ odkaz√≠ na ≈ô√°dky ve vzorci
 ' ===================================================================
 Private Function ReplaceRowReferences(formula As String, oldRow As Long, newRow As Long) As String
     Dim result As String
     result = formula
     
-    ' Nahradit absolutnÌ odkazy: $A$10 õ $A$50
+    ' Nahradit absolutn√≠ odkazy: $A$10 √≠ $A$50
     result = Replace(result, "$" & oldRow, "$" & newRow)
     
-    ' Nahradit relativnÌ odkazy: A10 õ A50
-    ' ProjÌt vöechny pÌsmena sloupc˘ (A-Z, AA-ZZ)
+    ' Nahradit relativn√≠ odkazy: A10 √≠ A50
+    ' Proj√≠t v≈°echny p√≠smena sloupc≈Ø (A-Z, AA-ZZ)
     Dim col As String
     Dim i As Long
     
-    ' JednopÌsmennÈ sloupce (A-Z)
+    ' JednopÔøΩsmenn√≠ sloupce (A-Z)
     For i = 65 To 90  ' ASCII A-Z
         col = Chr(i)
         result = Replace(result, col & oldRow, col & newRow)
         result = Replace(result, col & "$" & oldRow, col & "$" & newRow)
     Next i
     
-    ' DvoumÌstnÈ sloupce (AA-AZ, BA-BZ, CA-CZ)
+    ' DvoumÔøΩstn√≠ sloupce (AA-AZ, BA-BZ, CA-CZ)
     Dim firstChar As String, secondChar As String
     For i = 65 To 90
         firstChar = Chr(i)
@@ -502,7 +500,7 @@ Private Function ReplaceRowReferences(formula As String, oldRow As Long, newRow 
 End Function
 
 ' ===================================================================
-' NajÌt zdrojov˝ ¯·dek se stejnou Family a PromoID
+' Naj√≠t zdrojov√≠ ≈ô√°dek se stejnou Family a PromoID
 ' ===================================================================
 Private Function FindFamilySourceRow(textList As Worksheet, familyValue As String, promoID As String, excludeRow As Long) As Long
     FindFamilySourceRow = 0
@@ -515,11 +513,11 @@ Private Function FindFamilySourceRow(textList As Worksheet, familyValue As Strin
     promoIDCol = GetColumnSafe(textList, "tPromoID")
     
     Dim i As Long
-    For i = 3 To lastRow  ' ZaËÌt od ¯·dku 3 (p¯eskoËit header)
-        If i <> excludeRow Then  ' P¯eskoËit cÌlov˝ ¯·dek
+    For i = 3 To lastRow  ' ZaÔøΩ√≠t od ≈ô√°dku 3 (p≈æeskoƒçit header)
+        If i <> excludeRow Then  ' P≈æeskoƒçit c√≠lov√≠ ≈ô√°dek
             If Trim(textList.Cells(i, familyCol).value) = Trim(familyValue) And _
                Trim(CStr(textList.Cells(i, promoIDCol).value)) = Trim(promoID) Then
-                ' Naöli jsme vhodn˝ ¯·dek
+                ' NaÔøΩli jsme vhodn√≠ ≈ô√°dek
                 FindFamilySourceRow = i
                 Exit Function
             End If
@@ -528,10 +526,10 @@ Private Function FindFamilySourceRow(textList As Worksheet, familyValue As Strin
 End Function
 
 ' ===================================================================
-' KopÌrov·nÌ promoce dat z template ¯·dku
+' Kop√≠rov√°n√≠ promoce dat z template ≈ô√°dku
 ' ===================================================================
 Private Sub CopyPromotionData(textList As Worksheet, fromRow As Long, toRow As Long)
-    ' ZkopÌrovat datumy a t˝dny
+    ' Zkop√≠rovat datumy a t√Ωdny
     Call WriteToColumnSafe(textList, toRow, "tAkceOd", textList.Cells(fromRow, GetColumnSafe(textList, "tAkceOd")).value)
     Call WriteToColumnSafe(textList, toRow, "tAkceDo", textList.Cells(fromRow, GetColumnSafe(textList, "tAkceDo")).value)
     Call WriteToColumnSafe(textList, toRow, "tNakupOd", textList.Cells(fromRow, GetColumnSafe(textList, "tNakupOd")).value)
@@ -545,36 +543,36 @@ Private Sub CopyPromotionData(textList As Worksheet, fromRow As Long, toRow As L
     Call WriteToColumnSafe(textList, toRow, "tCom", textList.Cells(fromRow, GetColumnSafe(textList, "tCom")).value)
     Call WriteToColumnSafe(textList, toRow, "tVyber", textList.Cells(fromRow, GetColumnSafe(textList, "tVyber")).value)
     Call WriteToColumnSafe(textList, toRow, "tCustomer", textList.Cells(fromRow, GetColumnSafe(textList, "tCustomer")).value)
-    Call WriteToColumnSafe(textList, toRow, "tHero", "N")  ' Nov˝ produkt nenÌ hero
+    Call WriteToColumnSafe(textList, toRow, "tHero", "N")  ' Nov√≠ produkt nen√≠ hero
     Call WriteToColumnSafe(textList, toRow, "tPotvrzeno", textList.Cells(fromRow, GetColumnSafe(textList, "tPotvrzeno")).value)
     Call WriteToColumnSafe(textList, toRow, "tFCname", textList.Cells(fromRow, GetColumnSafe(textList, "tFCname")).value)
 End Sub
 
 ' ===================================================================
-' Smaz·nÌ produkt˘
+' Smaz√°n√≠ produkt≈Ø
 ' ===================================================================
 Private Function DeleteProducts(textList As Worksheet, rowsToDelete As Collection) As Long
     DeleteProducts = 0
     
-    ' Se¯adit ¯·dky od nejvyööÌho k nejniûöÌmu (aby se p¯i maz·nÌ neposouvaly indexy)
+    ' SeÔøΩadit ≈ô√°dky od nejvy≈ô√≠√≠ho k nejni≈ô√≠√≠mu (aby se p≈ôi maz√°n√≠ neposouvaly indexy)
     Dim sortedRows As Collection
     Set sortedRows = SortRowsDescending(rowsToDelete)
     
     Dim rowNum As Variant
     For Each rowNum In sortedRows
-        Debug.Print "    Maûu ¯·dek: " & rowNum
+        Debug.Print "    Ma≈æu ≈ô√°dek: " & rowNum
         textList.rows(CLng(rowNum)).Delete
         DeleteProducts = DeleteProducts + 1
     Next rowNum
 End Function
 
 ' ===================================================================
-' Se¯azenÌ ¯·dk˘ sestupnÏ
+' Se≈ôazen√≠ ≈ô√≠dk√≠ sestupnƒõ
 ' ===================================================================
 Private Function SortRowsDescending(rows As Collection) As Collection
     Set SortRowsDescending = New Collection
     
-    ' P¯evÈst na array a se¯adit
+    ' P≈æev√©st na array a se≈ôadit
     Dim arr() As Long
     ReDim arr(1 To rows.Count)
     
@@ -583,7 +581,7 @@ Private Function SortRowsDescending(rows As Collection) As Collection
         arr(i) = rows(i)
     Next i
     
-    ' Bubble sort (sestupnÏ)
+    ' Bubble sort (sestupnƒõ)
     Dim j As Long, temp As Long
     For i = 1 To UBound(arr) - 1
         For j = i + 1 To UBound(arr)
@@ -595,17 +593,17 @@ Private Function SortRowsDescending(rows As Collection) As Collection
         Next j
     Next i
     
-    ' P¯evÈst zpÏt do Collection
+    ' P≈æev√©st zpƒõt do Collection
     For i = 1 To UBound(arr)
         SortRowsDescending.Add arr(i)
     Next i
 End Function
 
 ' ===================================================================
-' PŸVODNÕ FUNKCE (beze zmÏn)
+' P≈ÆVODN√ç FUNKCE (beze zmƒõn)
 ' ===================================================================
 
-' GetSelectedRows - beze zmÏn
+' GetSelectedRows - beze zmƒõn
 Private Function GetSelectedRows(SelectedRange As Range, textList As Worksheet) As Collection
     Set GetSelectedRows = New Collection
     
@@ -636,10 +634,10 @@ Private Function UpdateSingleRow(textList As Worksheet, rowNum As Long, products
     productName = textList.Cells(rowNum, GetColumnSafe(textList, "tProduct")).value
     If Trim(productName) = "" Then Exit Function
     
-    ' PÿID¡NO: NaËÌst fcType z ¯·dku
+    ' P≈òID√ÅNO: Naƒç√≠st fcType z ≈ô√°dku
     Dim fcType As String
     fcType = Trim(textList.Cells(rowNum, GetColumnSafe(textList, "tFCname")).value)
-    Debug.Print "    fcType pro ¯·dek " & rowNum & ": " & fcType
+    Debug.Print "    fcType pro ≈ô√°dek " & rowNum & ": " & fcType
     
     Dim priceType As String
     priceType = Trim(textList.Cells(rowNum, GetColumnSafe(textList, "tPriceType")).value)
@@ -652,7 +650,7 @@ Private Function UpdateSingleRow(textList As Worksheet, rowNum As Long, products
     Set productRow = FindProductInCollection(productsCol, productName, countryCode)
     If productRow Is Nothing Then Exit Function
     
-    ' ZMÃNA: GetPromoPriceData s fcType
+    ' ZMƒöNA: GetPromoPriceData s fcType
     Dim result As Variant
     result = GetPromoPriceData(familyValue, priceType, productRow, fcType)
     
@@ -679,7 +677,7 @@ ErrorHandler:
     UpdateSingleRow = False
 End Function
 
-' FindProductInCollection - beze zmÏn
+' FindProductInCollection - beze zmƒõn
 Private Function FindProductInCollection(productsCol As Collection, productName As String, countryCode As String) As Object
     Set FindProductInCollection = Nothing
     Dim rowData As Object

@@ -5,36 +5,32 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
     Call UnlockText(TargetWorkbook)
     Call UnlockSAP(TargetWorkbook)
     
-    ' PÿID¡NO: NaËÌst countryCode
+    ' P≈òID√ÅNO: Naƒç√≠st countryCode
     Dim countryCode As String
-    On Error Resume Next
-    countryCode = Trim(TargetWorkbook.Sheets("Settings").Range("B10").value)
-    On Error GoTo 0
-    
-    If countryCode = "" Then countryCode = "CZK"
+    countryCode = GetCountryCode(TargetWorkbook)
     
     Debug.Print "Country Code: " & countryCode
     
-    ' NaËÌst data do kolekce - vûdy naËÌst znovu
+    ' Naƒç√≠st data do kolekce - v≈ædy naƒç√≠st znovu
     Call ProductsArray(TargetWorkbook)
     
-    ' ZÌskat kolekci
+    ' Z√≠skat kolekci
     Dim productsCol As Collection
     On Error Resume Next
     Set productsCol = GetProductsCollection()
     On Error GoTo 0
     
-    ' Kontrola, zda se kolekce naËetla
+    ' Kontrola, zda se kolekce na≈æetla
     If productsCol Is Nothing Then
-        MsgBox "Chyba: ProductsCollection nenÌ inicializov·na!" & vbCrLf & _
-               "UjistÏte se, ûe list PriceList obsahuje data.", vbCritical
+        MsgBox "Chyba: ProductsCollection nen√≠ inicializov√°na!" & vbCrLf & _
+               "Ujist√≠te se, ≈æe list PriceList obsahuje data.", vbCritical
         Call LockText(TargetWorkbook)
         Call LockSAP(TargetWorkbook)
         Exit Sub
     End If
     
     If productsCol.Count = 0 Then
-        MsgBox "é·dn· data k naËtenÌ z PriceList!", vbExclamation
+        MsgBox "≈æ√°dn√© data k naƒçten√© z PriceList!", vbExclamation
         Call LockText(TargetWorkbook)
         Call LockSAP(TargetWorkbook)
         Exit Sub
@@ -42,7 +38,7 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
     
     Debug.Print "Products loaded: " & productsCol.Count
     
-    ' NastavenÌ list˘
+    ' Nastaven√≠ list≈Ø
     Dim sapList As Worksheet
     Dim CrmList As Worksheet
     Dim textList As Worksheet
@@ -56,13 +52,13 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
     Dim customerHierarchy As String
     customerHierarchy = settingsSheet.Range("B6").value
     
-    ' NaËtenÌ dat z Text listu do pole
+    ' Naƒçten√≠ dat z Text listu do pole
     Dim tFirstRow As Long
     Dim tRowCount As Long
     tFirstRow = SelectedRange(1).row
     tRowCount = SelectedRange.rows.Count
     
-    ' UrËenÌ sloupc˘
+    ' Ur≈æen√≠ sloupc≈Ø
     Dim colTypAkce As Long, colPriorita As Long, colStockID As Long
     Dim colNakupOd As Long, colNakupDo As Long, colAkceOd As Long, colAkceDo As Long
     Dim colProduct As Long, colEAN As Long, colAFC As Long, colPromoPrice As Long
@@ -82,7 +78,7 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
     colFamily = textList.Range("tFamily").Column
     colPromoID = textList.Range("tPromoID").Column
     
-    ' NaËÌst vöechna data z v˝bÏru najednou do pole
+    ' Naƒç√≠st v≈°echna data z v√Ωb√°≈ôu najednou do pole
     Dim textData As Variant
     ReDim textData(1 To tRowCount, 1 To 13)
     
@@ -103,7 +99,7 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
         textData(i, 13) = textList.Cells(tFirstRow + i - 1, colPromoID).value
     Next i
     
-    ' Vymaz·nÌ dat z listu SAP (zachovat hlaviËky na ¯·dcÌch 1-3)
+    ' Vymaz√°n√≠ dat z listu SAP (zachovat hlaviƒçky na ≈ô√≠dc√Ωch 1-3)
     Dim lastSapRow As Long
     lastSapRow = sapList.Cells(sapList.rows.Count, 1).End(xlUp).row
     
@@ -111,18 +107,18 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
         sapList.rows("4:" & lastSapRow).Delete
     End If
     
-    ' P¯Ìprava dat pro SAP (nov˝ form·t)
+    ' P≈ô√≠prava dat pro SAP (nov√≠ form√°t)
     Dim sapData() As Variant
     ReDim sapData(1 To tRowCount * productsCol.Count, 1 To 14)
     
     Dim sapRowIndex As Long
     sapRowIndex = 1
     
-    ' Counter pro increment·lnÌ hodnoty
+    ' Counter pro inkrement√°ln√≠ hodnoty
     Dim rowCounter As Long
     rowCounter = 1
     
-    ' P¯Ìprava dat pro CRM
+    ' P≈ô√≠prava dat pro CRM
     Dim crmData() As Variant
     ReDim crmData(1 To tRowCount * productsCol.Count, 1 To 11)
     
@@ -132,7 +128,7 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
     Application.ScreenUpdating = False
     Application.Calculation = xlCalculationManual
     
-    ' ProjÌt vybranÈ ¯·dky a produkty
+    ' Proj√≠t vybran√© ≈ô√°dky a produkty
     Dim j As Long
     Dim productRow As Object
     Dim productKey As String
@@ -142,11 +138,11 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
     For j = 1 To tRowCount
         textKey = textData(j, 12) & textData(j, 8) ' Family & Product
         
-        ' NajÌt odpovÌdajÌcÌ produkt v kolekci
+        ' Naj√≠t odpov√∫daj≈Øc√≠ produkt v kolekci
         For Each productRow In productsCol
             If productRow.Exists("Family") And productRow.Exists("material_name") And productRow.Exists("volume_l") Then
                 
-                ' ZMÃNA: productKey podle countryCode
+                ' ZMƒöNA: productKey podle countryCode
                 If UCase(Trim(countryCode)) = "SVK" Then
                     productKey = productRow("Family") & productRow("material_name")
                 Else
@@ -154,7 +150,7 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
                 End If
                 
                 If textKey = productKey Then
-                    ' P¯idat do SAP pole (NOV› FORM¡T)
+                    ' P≈ôidat do SAP pole (NOV√â FORM√ÅT)
                     sapData(sapRowIndex, 1) = "ZP01"                                    ' A - ConditionType
                     sapData(sapRowIndex, 2) = 922                                       ' C - ConditionTable
                     sapData(sapRowIndex, 3) = "CZ10"                                    ' E - SalesOrganization
@@ -164,10 +160,10 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
                     sapData(sapRowIndex, 7) = Format(textData(j, 4), "YYYYMMDD")        ' AE - ValidityStartDate
                     sapData(sapRowIndex, 8) = Format(textData(j, 5), "YYYYMMDD")        ' AF - ValidityEndDate
                     
-                    ' V˝poËet hodnoty (BEZ Q1)
+                    ' VÔøΩpo≈æet hodnoty (BEZ Q1)
                     If productRow.Exists("base_price") And productRow.Exists("special_discount") Then
                         VypocetH = (-1 * textData(j, 10) / productRow("base_price") + 1 - productRow("special_discount") / 100) * 100
-                        ' NastavenÌ hodnoty s desetinnou teËkou a z·porn˝m znamÈnkem
+                        ' Nastaven√≠ hodnoty s desetinnou teƒçkou a z√°porn√Ωch√≠m znam√©nkem
                         sapData(sapRowIndex, 9) = "'" & Replace(CStr(Round(VypocetH, 3) * (-1)), ",", ".") ' AG - ConditionRateValue
                     Else
                         sapData(sapRowIndex, 9) = "'0.000"
@@ -176,13 +172,13 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
                     sapData(sapRowIndex, 10) = "%"                                      ' AH - ConditionRateValueUnit
                     sapData(sapRowIndex, 11) = "$$" & Format(rowCounter, "00000000")    ' AA - ConditionRecord
                     sapData(sapRowIndex, 12) = "'01"                                    ' AB - ConditionSequentialNumber
-                    sapData(sapRowIndex, 13) = textData(j, 8)                           ' BA - Product n·zev
+                    sapData(sapRowIndex, 13) = textData(j, 8)                           ' BA - Product n√≠zev
                     sapData(sapRowIndex, 14) = textData(j, 10)                          ' BB - AFC hodnota
                     
                     sapRowIndex = sapRowIndex + 1
                     rowCounter = rowCounter + 1
                     
-                    ' P¯idat do CRM pole
+                    ' P≈ôidat do CRM pole
                     crmData(crmRowIndex, 1) = textData(j, 13)     ' cIDakce
                     crmData(crmRowIndex, 2) = textData(j, 8)      ' cNazevProduktu
                     crmData(crmRowIndex, 3) = "'" & textData(j, 9) ' cEAN
@@ -203,10 +199,10 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
         Next productRow
     Next j
     
-    ' Bulk z·pis do SAP (NOV› FORM¡T) - zaËÌn· od ¯·dku 4
+    ' Bulk z√°pis do SAP (NOV√â FORM√ÅT) - za≈ô√≠n√≠ od ≈ô√°dku 4
     If sapRowIndex > 1 Then
         Dim sapStartRow As Long
-        sapStartRow = 4 ' ZaËÌn·me od 4. ¯·dku (¯·dky 1-3 jsou hlaviËky)
+        sapStartRow = 4 ' Za≈ô√≠n√≠me od 4. ≈ô√°dku (≈ô√°dky 1-3 jsou hlaviƒçky)
         
         For i = 1 To sapRowIndex - 1
             sapList.Cells(sapStartRow + i - 1, 1).value = sapData(i, 1)      ' A - ConditionType
@@ -221,19 +217,19 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
             sapList.Cells(sapStartRow + i - 1, 32).value = sapData(i, 8)     ' AF - ValidityEndDate
             sapList.Cells(sapStartRow + i - 1, 33).value = sapData(i, 9)     ' AG - ConditionRateValue
             sapList.Cells(sapStartRow + i - 1, 34).value = sapData(i, 10)    ' AH - ConditionRateValueUnit
-            sapList.Cells(sapStartRow + i - 1, 53).value = sapData(i, 13)    ' BA - Product n·zev
+            sapList.Cells(sapStartRow + i - 1, 53).value = sapData(i, 13)    ' BA - Product n√≠zev
             sapList.Cells(sapStartRow + i - 1, 54).value = sapData(i, 14)    ' BB - AFC
         Next i
     End If
     
-    ' Z·pis CSV na list Text
+    ' Z√°pis CSV na list Text
     Dim colCSV As Long
     colCSV = textList.Range("tCSV").Column
     For i = 0 To tRowCount - 1
         textList.Cells(tFirstRow + i, colCSV).value = "ANO"
     Next i
     
-    ' Bulk z·pis do CRM
+    ' Bulk z√°pis do CRM
     If crmRowIndex > 1 Then
         Dim crmStartRow As Long
         crmStartRow = CrmList.Cells(CrmList.rows.Count, CrmList.Range("cIDakce").Column).End(xlUp).row + 1
@@ -269,7 +265,7 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
         Next i
     End If
     
-    ' Maz·nÌ odbÏhl˝ch promocÌ z CRM
+    ' Maz√°n√≠ odbƒõhl√Ωch promoc√≠ z CRM
     Dim cLastRow As Long
     colCAkceDo = CrmList.Range("cAkceDo").Column
     cLastRow = CrmList.Cells(CrmList.rows.Count, colCAkceDo).End(xlUp).row
@@ -288,7 +284,7 @@ Public Sub SAP_CRM(TargetWorkbook As Workbook, SelectedRange As Range)
     Call LockText(TargetWorkbook)
     Call LockSAP(TargetWorkbook)
     
-    Debug.Print "CSV: Zpracov·no " & (sapRowIndex - 1) & " SAP ¯·dk˘ a " & (crmRowIndex - 1) & " CRM ¯·dk˘"
+    Debug.Print "CSV: Zpracov√°no " & (sapRowIndex - 1) & " SAP ≈ô√≠dk√≠ a " & (crmRowIndex - 1) & " CRM ≈ô√≠dkÔøΩ"
     
 End Sub
 
@@ -299,13 +295,13 @@ Public Sub ExportData(TargetWorkbook As Workbook)
     
     On Error GoTo ErrorHandler
     
-    ' NastavenÌ list˘
+    ' Nastaven√≠ list≈Ø
     Dim sapList As Worksheet
     Dim settingsSheet As Worksheet
     Set sapList = TargetWorkbook.Sheets("SAP")
     Set settingsSheet = TargetWorkbook.Sheets("Settings")
     
-    ' NaËtenÌ cest ze Settings
+    ' Naƒçten√≠ cest ze Settings
     Dim path1 As String
     Dim path2 As String
     Dim sharePointPath As String
@@ -314,31 +310,31 @@ Public Sub ExportData(TargetWorkbook As Workbook)
     path2 = settingsSheet.Range("B8").value
     sharePointPath = "https://stockgroup.sharepoint.com/sites/power-apps-data/promotool-automation-uat/Shared%20Documents/landing_v2/"
     
-    ' Vytvo¯enÌ n·zvu souboru
+    ' Vytvo≈æen√≠ n√°zvu souboru
     Dim fileName As String
     fileName = sapList.Cells(4, 24).value & "_"
     
     Dim TimeStamp As String
     TimeStamp = Format(Now, "yyyymmdd-hhnnss")
     
-    ' Vytvo¯enÌ novÈho seöitu
+    ' Vytvo≈æen√≠ nov√≠ho se≈°itu
     Dim Wbk As Workbook
     Set Wbk = Workbooks.Add
     
-    ' NastavenÌ textovÈho form·tu
+    ' Nastaven√≠ textov√≠ho form√°tu
     Wbk.Sheets(1).Cells.NumberFormat = "@"
     
-    ' KopÌrov·nÌ dat z listu SAP
+    ' Kop√≠rov√°n√≠ dat z listu SAP
     sapList.UsedRange.Copy
     Wbk.Sheets(1).Range("A1").PasteSpecial Paste:=xlPasteValues
     Application.CutCopyMode = False
     
-    ' P¯evod ËÌseln˝ch datum˘ na textov˝ form·t
+    ' P≈æevod ≈ô√≠seln√≠ch datum√≠ na textov√≠ form√°t
     Dim lastRow As Long
     Dim i As Long
     lastRow = Wbk.Sheets(1).UsedRange.rows.Count
     
-    ' P¯evod dat ve sloupcÌch F a G na Ëiteln˝ textov˝ form·t
+    ' P≈æevod dat ve sloupc≈Øch F a G na ƒçiteln√≠ textov√≠ form√°t
     For i = 2 To lastRow
         ' Sloupec F (PLATOD)
         If IsNumeric(Wbk.Sheets(1).Cells(i, 6).value) And Wbk.Sheets(1).Cells(i, 6).value > 0 Then
@@ -350,7 +346,7 @@ Public Sub ExportData(TargetWorkbook As Workbook)
         End If
     Next i
     
-    ' OdstranÏnÌ vöech tlaËÌtek z novÈho listu
+    ' Odstran√≠n√≠ v≈°ech tlaƒç√≠tek z nov√≠ho listu
     Dim shp As Shape
     Dim found As Boolean
     
@@ -365,7 +361,7 @@ Public Sub ExportData(TargetWorkbook As Workbook)
         Next shp
     Loop While found
     
-    ' UrËenÌ lok·lnÌ cesty
+    ' Ur≈æen√≠ lok√°ln√≠ cesty
     Dim targetFolderPath As String
     Dim fso As Object
     Set fso = CreateObject("Scripting.FileSystemObject")
@@ -378,11 +374,11 @@ Public Sub ExportData(TargetWorkbook As Workbook)
         targetFolderPath = path2
         If Right(targetFolderPath, 1) <> "\" Then targetFolderPath = targetFolderPath & "\"
     Else
-        MsgBox "é·dn· z cest v Settings (B7, B8) neexistuje!", vbCritical
+        MsgBox "≈æ√°dn√© z cest v Settings (B7, B8) neexistuje!", vbCritical
         GoTo CleanUp
     End If
     
-    ' Cesty pro uloûenÌ
+    ' Cesty pro ulo≈æen√≠
     Dim wbkSharePointPath As String
     Dim wbkLocalPath As String
     
@@ -393,7 +389,7 @@ Public Sub ExportData(TargetWorkbook As Workbook)
     Wbk.Sheets(1).Protect Password:=GetPassword(), DrawingObjects:=True, Contents:=True, Scenarios:=True
     On Error GoTo ErrorHandler
     
-    ' UloûenÌ do SharePointu
+    ' Ulo≈æen√≠ do SharePointu
     On Error Resume Next
     Wbk.SaveAs _
         fileName:=wbkSharePointPath, _
@@ -404,26 +400,26 @@ Public Sub ExportData(TargetWorkbook As Workbook)
     sharePointSaved = (Err.Number = 0)
     
     If Not sharePointSaved Then
-        Debug.Print "SharePoint uloûenÌ selhalo: " & Err.Description
+        Debug.Print "SharePoint ulo≈æen√≠ selhalo: " & Err.Description
     End If
     On Error GoTo ErrorHandler
     
-    ' UloûenÌ do lok·lnÌ sloûky
+    ' Ulo≈æen√≠ do lok√°ln√≠ slo≈æky
     Wbk.SaveAs _
         fileName:=wbkLocalPath, _
         FileFormat:=xlOpenXMLWorkbook, _
         CreateBackup:=False
     
-    Debug.Print "Export dokonËen: " & wbkLocalPath
+    Debug.Print "Export dokon≈æen: " & wbkLocalPath
     
     If sharePointSaved Then
-        MsgBox "Export dokonËen!" & vbCrLf & _
-               "Lok·lnÌ: " & wbkLocalPath & vbCrLf & _
+        MsgBox "Export dokon≈æen!" & vbCrLf & _
+               "Lok√°ln√≠: " & wbkLocalPath & vbCrLf & _
                "SharePoint: " & wbkSharePointPath, vbInformation
     Else
-        MsgBox "Export dokonËen lok·lnÏ!" & vbCrLf & _
-               "Lok·lnÌ: " & wbkLocalPath & vbCrLf & vbCrLf & _
-               "SharePoint uloûenÌ selhalo.", vbExclamation
+        MsgBox "Export dokon≈æen lok√°ln√≠!" & vbCrLf & _
+               "Lok√°ln√≠: " & wbkLocalPath & vbCrLf & vbCrLf & _
+               "SharePoint ulo≈æen√≠ selhalo.", vbExclamation
     End If
     
 CleanUp:
@@ -438,7 +434,7 @@ CleanUp:
     
 ErrorHandler:
     Debug.Print "Chyba " & Err.Number & ": " & Err.Description
-    MsgBox "Chyba p¯i exportu: " & Err.Description, vbCritical
+    MsgBox "Chyba p≈ôi exportu: " & Err.Description, vbCritical
     Resume CleanUp
     
 End Sub
