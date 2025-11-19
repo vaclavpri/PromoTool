@@ -1,23 +1,23 @@
 Attribute VB_Name = "Clear"
 ' ===================================================================
-' Clear1 - maz�n� promoc�
+' Clear1 - mazání promocí
 ' ===================================================================
 Public Sub Clear1(TargetWorkbook As Workbook)
-    ' Z�sk�n� PromoID z ozna�en�ch bun�k
+    ' Získání PromoID z označených buněk
     Dim promoIDsToDelete As Collection
     Set promoIDsToDelete = New Collection
     
     Dim cell As Range
     Dim promoID As String
     
-    ' Z�sk�n� v�ech PromoID z koment��� ozna�en�ch bun�k
+    ' Získání všech PromoID z komentářů označených buněk
     On Error Resume Next
     For Each cell In TargetWorkbook.Application.Selection
         If Not cell.comment Is Nothing Then
-            ' Z�skat prvn�ch 8 znak� z koment��e (PromoID)
+            ' Získat prvních 8 znaků z komentáře (PromoID)
             promoID = Left(cell.comment.Text, 8)
             
-            If Len(promoID) = 8 Then  ' Kontrola d�lky 8 znak�
+            If Len(promoID) = 8 Then  ' Kontrola délky 8 znaků
                 promoIDsToDelete.Add promoID, promoID
             End If
         End If
@@ -25,18 +25,18 @@ Public Sub Clear1(TargetWorkbook As Workbook)
     On Error GoTo 0
     
     If promoIDsToDelete.Count = 0 Then
-        MsgBox "V ozna�en�ch bu�k�ch nebyla nalezena ��dn� PromoID v koment���ch.", vbInformation
+        MsgBox "V označených buňkách nebyla nalezena žádná PromoID v komentářích.", vbInformation
         Exit Sub
     End If
     
-    ' POTVRZEN� P�ED SMAZ�N�M
+    ' POTVRZENÍ PŘED SMAZÁNÍM
     Dim response As VbMsgBoxResult
-    response = MsgBox("Opravdu chcete smazat " & promoIDsToDelete.Count & " promoc�?", _
-                      vbYesNo + vbQuestion, "Potvrzen� smaz�n�")
+    response = MsgBox("Opravdu chcete smazat " & promoIDsToDelete.Count & " promocí?", _
+                      vbYesNo + vbQuestion, "Potvrzení smazání")
     
     If response = vbNo Then Exit Sub
     
-    ' Smaz�n� v�ech promoc� s dan�mi PromoID
+    ' Smazání všech promocí s danými PromoID
     Dim searchValue As String
     Dim i As Long
     
@@ -45,7 +45,7 @@ Public Sub Clear1(TargetWorkbook As Workbook)
         Call DeletePromoByID(TargetWorkbook, searchValue)
     Next i
     
-    MsgBox "Bylo odstran�no " & promoIDsToDelete.Count & " promoc�.", vbInformation
+    MsgBox "Bylo odstraněno " & promoIDsToDelete.Count & " promocí.", vbInformation
     
 End Sub
 
@@ -58,7 +58,7 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
     Set textList = TargetWorkbook.Sheets("Text")
     Set CrmList = TargetWorkbook.Sheets("CRM")
     
-    ' Na�ten� dat z Text listu do pole
+    ' Načtení dat z Text listu do pole
     Dim textLastRow As Long
     Dim textData As Variant
     Dim textPromoIDColumn As Long
@@ -81,7 +81,7 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
         End If
     Next i
     
-    ' Zm�na statusu na CRM listu
+    ' Změna statusu na CRM listu
     Dim cLastRow As Long
     Dim cData As Variant
     Dim cIDColumn As Long
@@ -111,7 +111,7 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
         End If
     End If
     
-    ' Smaz�n� ��dk�
+    ' Smazání řádků
     Dim textDeleteCount As Long
     textDeleteCount = 0
     
@@ -128,7 +128,7 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
         Application.ScreenUpdating = True
     End If
     
-    ' Vy�i�t�n� V�ECH bun�k se stejn�m PromoID v koment��i
+    ' Vyčištění VŠECH buněk se stejným PromoID v komentáři
     Call ClearAllCellsWithPromoID(TargetWorkbook, searchValue)
     
 End Sub
@@ -161,7 +161,7 @@ Private Sub ClearAllCellsWithPromoID(TargetWorkbook As Workbook, searchValue As 
     On Error GoTo 0
 End Sub
 
-' Volat na konci po zpracov�n� v�ech PromoID
+' Volat na konci po zpracování všech PromoID
 Public Sub FinalizeAfterDelete(TargetWorkbook As Workbook)
     Call SortIt(TargetWorkbook)
     Call rColor(TargetWorkbook)
