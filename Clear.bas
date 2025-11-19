@@ -1,23 +1,23 @@
 Attribute VB_Name = "Clear"
 ' ===================================================================
-' Clear1 - mazání promocí
+' Clear1 - mazï¿½nï¿½ promocï¿½
 ' ===================================================================
 Public Sub Clear1(TargetWorkbook As Workbook)
-    ' Získání PromoID z oznaèených bunìk
+    ' Zï¿½skï¿½nï¿½ PromoID z oznaï¿½enï¿½ch bunï¿½k
     Dim promoIDsToDelete As Collection
     Set promoIDsToDelete = New Collection
     
     Dim cell As Range
     Dim promoID As String
     
-    ' Získání všech PromoID z komentáøù oznaèených bunìk
+    ' Zï¿½skï¿½nï¿½ vï¿½ech PromoID z komentï¿½ï¿½ï¿½ oznaï¿½enï¿½ch bunï¿½k
     On Error Resume Next
     For Each cell In TargetWorkbook.Application.Selection
         If Not cell.comment Is Nothing Then
-            ' Získat prvních 8 znakù z komentáøe (PromoID)
+            ' Zï¿½skat prvnï¿½ch 8 znakï¿½ z komentï¿½ï¿½e (PromoID)
             promoID = Left(cell.comment.Text, 8)
             
-            If Len(promoID) = 8 Then  ' Kontrola délky 8 znakù
+            If Len(promoID) = 8 Then  ' Kontrola dï¿½lky 8 znakï¿½
                 promoIDsToDelete.Add promoID, promoID
             End If
         End If
@@ -25,18 +25,18 @@ Public Sub Clear1(TargetWorkbook As Workbook)
     On Error GoTo 0
     
     If promoIDsToDelete.Count = 0 Then
-        MsgBox "V oznaèených buòkách nebyla nalezena žádná PromoID v komentáøích.", vbInformation
+        MsgBox "V oznaï¿½enï¿½ch buï¿½kï¿½ch nebyla nalezena ï¿½ï¿½dnï¿½ PromoID v komentï¿½ï¿½ï¿½ch.", vbInformation
         Exit Sub
     End If
     
-    ' POTVRZENÍ PØED SMAZÁNÍM
+    ' POTVRZENï¿½ Pï¿½ED SMAZï¿½Nï¿½M
     Dim response As VbMsgBoxResult
-    response = MsgBox("Opravdu chcete smazat " & promoIDsToDelete.Count & " promocí?", _
-                      vbYesNo + vbQuestion, "Potvrzení smazání")
+    response = MsgBox("Opravdu chcete smazat " & promoIDsToDelete.Count & " promocï¿½?", _
+                      vbYesNo + vbQuestion, "Potvrzenï¿½ smazï¿½nï¿½")
     
     If response = vbNo Then Exit Sub
     
-    ' Smazání všech promocí s danými PromoID
+    ' Smazï¿½nï¿½ vï¿½ech promocï¿½ s danï¿½mi PromoID
     Dim searchValue As String
     Dim i As Long
     
@@ -45,7 +45,7 @@ Public Sub Clear1(TargetWorkbook As Workbook)
         Call DeletePromoByID(TargetWorkbook, searchValue)
     Next i
     
-    MsgBox "Bylo odstranìno " & promoIDsToDelete.Count & " promocí.", vbInformation
+    MsgBox "Bylo odstranï¿½no " & promoIDsToDelete.Count & " promocï¿½.", vbInformation
     
 End Sub
 
@@ -58,7 +58,7 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
     Set textList = TargetWorkbook.Sheets("Text")
     Set CrmList = TargetWorkbook.Sheets("CRM")
     
-    ' Naètení dat z Text listu do pole
+    ' Naï¿½tenï¿½ dat z Text listu do pole
     Dim textLastRow As Long
     Dim textData As Variant
     Dim textPromoIDColumn As Long
@@ -81,7 +81,7 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
         End If
     Next i
     
-    ' Zmìna statusu na CRM listu
+    ' Zmï¿½na statusu na CRM listu
     Dim cLastRow As Long
     Dim cData As Variant
     Dim cIDColumn As Long
@@ -111,7 +111,7 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
         End If
     End If
     
-    ' Smazání øádkù
+    ' Smazï¿½nï¿½ ï¿½ï¿½dkï¿½
     Dim textDeleteCount As Long
     textDeleteCount = 0
     
@@ -128,40 +128,40 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
         Application.ScreenUpdating = True
     End If
     
-    ' Vyèištìní VŠECH bunìk se stejným PromoID v komentáøi
+    ' Vyï¿½iï¿½tï¿½nï¿½ Vï¿½ECH bunï¿½k se stejnï¿½m PromoID v komentï¿½ï¿½i
     Call ClearAllCellsWithPromoID(TargetWorkbook, searchValue)
     
 End Sub
 
 Private Sub ClearAllCellsWithPromoID(TargetWorkbook As Workbook, searchValue As String)
     On Error Resume Next
-    
+
     Dim ws As Worksheet
     Dim cell As Range
     Dim promoIDFromComment As String
-    
-    ' Projít VŠECHNY listy v sešitu
-    For Each ws In TargetWorkbook.Worksheets
-        ' Projít všechny buòky s komentáøem na aktuálním listu
-        For Each cell In ws.Cells.SpecialCells(xlCellTypeComments)
-            If Not cell.comment Is Nothing Then
-                ' Získat prvních 8 znakù z komentáøe
-                promoIDFromComment = Left(cell.comment.Text, 8)
-                
-                ' Pokud se shoduje s hledanou hodnotou
-                If promoIDFromComment = searchValue Then
-                    cell.ClearContents
-                    cell.Interior.ColorIndex = 0
-                    cell.ClearComments
-                End If
+
+    ' Nastavit list Promoplan
+    Set ws = TargetWorkbook.Sheets("Promoplan")
+
+    ' ProjÃ­t vÅ¡echny buÅˆky s komentÃ¡Å™em na listu Promoplan
+    For Each cell In ws.Cells.SpecialCells(xlCellTypeComments)
+        If Not cell.comment Is Nothing Then
+            ' ZÃ­skat prvnÃ­ch 8 znakÅ¯ z komentÃ¡Å™e
+            promoIDFromComment = Left(cell.comment.Text, 8)
+
+            ' Pokud se shoduje s hledanou hodnotou
+            If promoIDFromComment = searchValue Then
+                cell.ClearContents
+                cell.Interior.ColorIndex = 0
+                cell.ClearComments
             End If
-        Next cell
-    Next ws
-    
+        End If
+    Next cell
+
     On Error GoTo 0
 End Sub
 
-' Volat na konci po zpracování všech PromoID
+' Volat na konci po zpracovï¿½nï¿½ vï¿½ech PromoID
 Public Sub FinalizeAfterDelete(TargetWorkbook As Workbook)
     Call SortIt(TargetWorkbook)
     Call rColor(TargetWorkbook)
