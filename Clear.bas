@@ -58,18 +58,26 @@ Private Sub DeletePromoByID(TargetWorkbook As Workbook, searchValue As String)
     Set textList = TargetWorkbook.Sheets("Text")
     Set CrmList = TargetWorkbook.Sheets("CRM")
     
-    ' Na�ten� dat z Text listu do pole
+    ' Načtení dat z Text listu do pole' Načtení dat z Text listu do pole
     Dim textLastRow As Long
     Dim textData As Variant
     Dim textPromoIDColumn As Long
-    
+
     textPromoIDColumn = textList.Range("tPromoID").Column
     textLastRow = textList.Cells(textList.rows.Count, textPromoIDColumn).End(xlUp).row
-    
+
     If textLastRow < 3 Then Exit Sub
-    
-    textData = textList.Range(textList.Cells(3, textPromoIDColumn), _
-                              textList.Cells(textLastRow, textPromoIDColumn)).value
+
+    ' Kontrola, zda je víc než 1 řádek
+    If textLastRow = 3 Then
+        ' Pouze jeden řádek dat - vytvoř pole manuálně
+        ReDim textData(1 To 1, 1 To 1)
+        textData(1, 1) = textList.Cells(3, textPromoIDColumn).value
+    Else
+        ' Více řádků - standardní načtení
+        textData = textList.Range(textList.Cells(3, textPromoIDColumn), _
+                                  textList.Cells(textLastRow, textPromoIDColumn)).value
+    End If
     
     Dim rowsToDelete As Collection
     Set rowsToDelete = New Collection
