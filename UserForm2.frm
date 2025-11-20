@@ -45,125 +45,125 @@ Private Sub CommandButton2_Click()
     If LB_Hero.ListIndex = -1 Then
         MsgBox "Vyber Hero produkt."
     Else
-        InsertPromo  ' Nyní tato procedura existuje nže
+        InsertPromo  ' Nyní tato procedura existuje níže
     End If
 End Sub
 
 Private Sub InsertPromo()
     On Error GoTo ErrorHandler
-    
+
     Debug.Print "=== InsertPromo START ==="
-    
+
     ' Zavolat PromoSet
     Call PromoSet
-    
-    ' Ov�žení, že Promo je vytvožení
+
+    ' Ověření, že Promo je vytvořen
     If Promo Is Nothing Then
-        MsgBox "Chyba: Promo nebyl vytvožen!"
+        MsgBox "Chyba: Promo nebyl vytvořen!"
         Exit Sub
     End If
-    
+
     Debug.Print "Promo typ: " & Promo.promoTyp
-    
+
     ' Generovat PromoID
     Dim promoID As String
     promoID = GenerateID(TargetWorkbook)
-    Debug.Print "Vygenerovaní PromoID: " & promoID
-    
+    Debug.Print "Vygenerované PromoID: " & promoID
+
     ' Reference na Text list
     Dim textList As Worksheet
     Set textList = TargetWorkbook.Sheets("Text")
-    
+
     Dim firstEmptyRow As Long
     firstEmptyRow = textList.Cells(textList.rows.Count, textList.Range("tProduct").Column).End(xlUp).row + 1
     Debug.Print "firstEmptyRow: " & firstEmptyRow
-    
+
     If firstEmptyRow <= 2 Then
         firstEmptyRow = 3
     End If
-    
+
     Dim Fami As Range
     Set Fami = SelectedRange.Worksheet.Range("C" & SelectedRange.row)
     Debug.Print "Family: " & Fami.value
-    
+
     Dim selectedPrice As String
     selectedPrice = LB_Price.List(LB_Price.ListIndex)
     Debug.Print "Selected Price: " & selectedPrice
-    
+
     ' Objemy
     Dim pcsPlanText As String
     pcsPlanText = TB_PcsPlan.Text
     Debug.Print "PCS Plan Text: " & pcsPlanText
-    
-    ' Výbář
+
+    ' Výběr
     Dim vyberValue As String
     vyberValue = GetVyberValue(Me.LB_Product)
     Debug.Print "Vyber Value: " & vyberValue
-    
+
     ' Hero
     Dim heroProduct As String
     heroProduct = GetHeroItem(Me.LB_Hero)
     heroProduct = Me.LB_Product.List(Me.LB_Product.ListIndex)
     Debug.Print "Hero Product: " & heroProduct
-    
+
     ' Plán
     Dim isPlan As Boolean
     isPlan = CB_Plan.value
     Debug.Print "Is Plan: " & isPlan
-    
+
     ' Načíst countryCode z Settings
     Dim countryCode As String
     countryCode = GetCountryCode()
     Debug.Print "Country Code: " & countryCode
-       
+
     Dim commentText As String
     commentText = Trim(Me.TB_Comment.value)
     Debug.Print "Comment: " & commentText
-       
-    Debug.Print "=== PŘED VOLÁNÍÁM PridejVybraneHeroProdukty ==="
-    
+
+    Debug.Print "=== PŘED VOLÁNÍM PridejVybraneHeroProdukty ==="
+
     ' Zápis do listu Text
     Call PridejVybraneHeroProdukty(Me, selectedPrice, Promo, heroProduct, promoID, vyberValue, pcsPlanText, isPlan, TargetWorkbook, SelectedRange, Me.LB_FC.value, countryCode, commentText)
-    
-    Debug.Print "=== PO VOLÁNÍí PridejVybraneHeroProdukty ==="
-    
-    ' P�ESUNUTO: Seřazení PŘED formátováním
+
+    Debug.Print "=== PO VOLÁNÍ PridejVybraneHeroProdukty ==="
+
+    ' PŘESUNUTO: Seřazení PŘED formátováním
     Debug.Print "=== PŘED Seřazením ==="
     Call ApplyFilterToRow2(TargetWorkbook)
     Call SortIt(TargetWorkbook)
     Debug.Print "=== PO Seřazení ==="
-    
-    ' Barvení řídk�
+
+    ' Barvení řádků
     Call rColor(TargetWorkbook)
     Debug.Print "=== PO rColor ==="
-    
-        Debug.Print "=== KONTROLA KOMENTříí PŘED FormatPromoCells ==="
+
+    Debug.Print "=== KONTROLA KOMENTÁŘŮ PŘED FormatPromoCells ==="
     Dim checkCell As Range
     For Each checkCell In SelectedRange.Cells
         If Not checkCell.comment Is Nothing Then
-            Debug.Print "  Bu�ka " & checkCell.Address & " mí komentář�: " & Left(checkCell.comment.Text, 8)
+            Debug.Print "  Buňka " & checkCell.Address & " má komentář: " & Left(checkCell.comment.Text, 8)
         Else
-            Debug.Print "  Bu�ka " & checkCell.Address & " NEMí komentář�"
+            Debug.Print "  Buňka " & checkCell.Address & " NEMÁ komentář"
         End If
     Next checkCell
     Debug.Print "=== KONEC KONTROLY ==="
-    
-    ' Formítování kostižek
+
+    ' Formátování koštiček
     Dim usePlanColor As Boolean
     usePlanColor = CB_Plan.value
     Call FormatPromoCells(TargetWorkbook, SelectedRange, Promo, promoID, usePlanColor)
-        
+
     Debug.Print "=== PO FormatPromoCells ==="
-    
-    ' Zav�ít UserForm
+
+    ' Zavřít UserForm
     Unload Me
-    
-    MsgBox "Promoce byla �sp�ní vložena! PromoID: " & promoID, vbInformation
-    
+
+    MsgBox "Promoce byla úspěšně vložena! PromoID: " & promoID, vbInformation
+
     Debug.Print "=== InsertPromo END ==="
-    
+
     Exit Sub
-    
+
 ErrorHandler:
     Debug.Print "CHYBA v InsertPromo na řádku: " & Erl
     Debug.Print "Chyba " & Err.Number & ": " & Err.Description
@@ -171,7 +171,7 @@ ErrorHandler:
 End Sub
 
 Private Function GetCountryCode() As String
-    ' Používá sd�lenou funkci z Module1
+    ' Používá sdílenou funkci z Module1
     GetCountryCode = Module1.GetCountryCode(TargetWorkbook)
 End Function
 
@@ -184,20 +184,20 @@ End Function
 '    Dim i As Long
 '    Dim loadPrices As Boolean
 '
-'    ' Zkontrolovat, že m�me SelectedRange
+'    ' Zkontrolovat, že máme SelectedRange
 '    If SelectedRange Is Nothing Then
 '        Debug.Print "SelectedRange není nastaven"
 '        Exit Sub
 '    End If
 '
-'    ' Zjistit, jestli na�ítat i ceny
+'    ' Zjistit, jestli načítat i ceny
 '    loadPrices = (LB_Price.ListIndex >= 0)
 '
 '    If loadPrices Then
 '        SelectedValue = LB_Price.value
-'        Debug.Print "Vybraní cena: " & SelectedValue
+'        Debug.Print "Vybraná cena: " & SelectedValue
 '    Else
-'        Debug.Print "žádné cena nevybrané - načtem jen produkty"
+'        Debug.Print "Žádná cena nevybraná - načtem jen produkty"
 '    End If
 '
 '    ' Získat fcType z LB_FC
@@ -215,7 +215,7 @@ End Function
 '    countryCode = GetCountryCode()
 '    Debug.Print "Country Code: " & countryCode
 '
-'    ' Vy�iít�ní ListBox�
+'    ' Vyčištění ListBoxů
 '    LB_Product.Clear
 '    LB_PriceValues.Clear
 '    LB_AFC.Clear
@@ -226,9 +226,9 @@ End Function
 '
 '    Dim selectedFamily As String
 '    selectedFamily = SelectedRange.Worksheet.Cells(SelectedRange.row, 3).value
-'    Debug.Print "Vybraní rodina: " & selectedFamily
+'    Debug.Print "Vybraná rodina: " & selectedFamily
 '
-'    ' Proch�zení kolekce produktů
+'    ' Procházení kolekce produktů
 '    Dim rowData As Object
 '    For Each rowData In GetProductsCollection()
 '
@@ -244,7 +244,7 @@ End Function
 '
 '            LB_Product.AddItem productName
 '
-'            ' Načíst ceny jen pokud je vybrané cena
+'            ' Načíst ceny jen pokud je vybraná cena
 '            If loadPrices Then
 '                Dim result As Variant
 '                result = GetPromoPriceData(selectedFamily, SelectedValue, rowData, fcType)
@@ -260,7 +260,7 @@ End Function
 '        End If
 '    Next rowData
 '
-'    Debug.Print "Požet produktů: " & LB_Product.ListCount
+'    Debug.Print "Počet produktů: " & LB_Product.ListCount
 '
 '    ' Vybrat všechny produkty
 '    For i = 0 To LB_Product.ListCount - 1
@@ -277,29 +277,29 @@ End Function
 
 Private Sub LoadProducts()
     On Error GoTo ErrorHandler
-    
+
     Debug.Print "=== LoadProducts START ==="
-    
+
     Dim SelectedValue As String
     Dim i As Long
     Dim loadPrices As Boolean
-    
-    ' Zkontrolovat, že m�me SelectedRange
+
+    ' Zkontrolovat, že máme SelectedRange
     If SelectedRange Is Nothing Then
         Debug.Print "SelectedRange není nastaven"
         Exit Sub
     End If
-    
-    ' Zjistit, jestli na�ítat i ceny
+
+    ' Zjistit, jestli načítat i ceny
     loadPrices = (LB_Price.ListIndex >= 0)
-    
+
     If loadPrices Then
         SelectedValue = LB_Price.value
-        Debug.Print "Vybraní cena: " & SelectedValue
+        Debug.Print "Vybraná cena: " & SelectedValue
     Else
-        Debug.Print "žádné cena nevybrané - načtem jen produkty"
+        Debug.Print "Žádná cena nevybraná - načtem jen produkty"
     End If
-    
+
     ' Získat fcType z LB_FC
     Dim fcType As String
     If LB_FC.ListIndex >= 0 Then
@@ -309,32 +309,32 @@ Private Sub LoadProducts()
         fcType = "AFC"
         Debug.Print "FC Type: " & fcType & " (default)"
     End If
-    
+
     ' PŘIDÁNO: Načíst countryCode z Settings
     Dim countryCode As String
     countryCode = GetCountryCode()
     Debug.Print "Country Code: " & countryCode
-    
-    ' Vy�iít�ní ListBox�
+
+    ' Vyčištění ListBoxů
     LB_Product.Clear
     LB_PriceValues.Clear
     LB_AFC.Clear
     LB_ZS.Clear
-    
+
     ' Načtení Products pole
     Call ProductsArray(TargetWorkbook)
-    
+
     Dim selectedFamily As String
     selectedFamily = SelectedRange.Worksheet.Cells(SelectedRange.row, 3).value
-    Debug.Print "Vybraní rodina: " & selectedFamily
-    
+    Debug.Print "Vybraná rodina: " & selectedFamily
 
-    ' Proch�zení kolekce produktů
+
+    ' Procházení kolekce produktů
     Dim rowData As Object
     For Each rowData In GetProductsCollection()
-        
+
         If rowData.Exists("Family") And rowData("Family") = selectedFamily Then
-            
+
             ' Podle countryCode rozhodnout formát productName
             Dim productName As String
             If UCase(Trim(countryCode)) = "SVK" Then
@@ -342,24 +342,24 @@ Private Sub LoadProducts()
             Else
                 productName = rowData("material_name") & " " & rowData("volume_l")
             End If
-            
+
             LB_Product.AddItem productName
-            
-            ' NAříT�Ní CEN - TADY PŘIDAT DEBUG
+
+            ' NAČÍTÁNÍ CEN - TADY PŘIDAT DEBUG
             If loadPrices Then
                 Dim result As Variant
-                Debug.Print "Volím GetPromoPriceData s:"
+                Debug.Print "Volám GetPromoPriceData s:"
                 Debug.Print "  selectedFamily: " & selectedFamily
                 Debug.Print "  SelectedValue: " & SelectedValue
                 Debug.Print "  fcType: " & fcType
-                
+
                 result = GetPromoPriceData(selectedFamily, SelectedValue, rowData, fcType)
-                
-                Debug.Print "V�sledek:"
+
+                Debug.Print "Výsledek:"
                 Debug.Print "  result(0): " & result(0)
                 Debug.Print "  result(2): " & result(2)
                 Debug.Print "  result(3): " & result(3)
-                
+
                 LB_PriceValues.AddItem result(0)
                 LB_AFC.AddItem result(3)
                 LB_ZS.AddItem result(6)
@@ -371,17 +371,17 @@ Private Sub LoadProducts()
             End If
         End If
     Next rowData
-    
-    Debug.Print "Požet produktů: " & LB_Product.ListCount
-    
+
+    Debug.Print "Počet produktů: " & LB_Product.ListCount
+
     ' Vybrat všechny produkty
     For i = 0 To LB_Product.ListCount - 1
         LB_Product.Selected(i) = True
     Next i
-    
+
     Debug.Print "=== LoadProducts END ==="
     Exit Sub
-    
+
 ErrorHandler:
     Debug.Print "CHYBA v LoadProducts: " & Err.Description
     MsgBox "Chyba při načtení produktů: " & Err.Description, vbCritical
@@ -447,16 +447,16 @@ End Sub
 Public Sub LoadFCTypesToListBox()
     On Error GoTo ErrorHandler
 
-    ' Vy�istit ListBox
+    ' Vyčistit ListBox
     Me.LB_FC.Clear
 
-    ' Zkontrolovat, zda m�me TargetWorkbook
+    ' Zkontrolovat, zda máme TargetWorkbook
     If TargetWorkbook Is Nothing Then
         Debug.Print "TargetWorkbook není nastaven!"
         Exit Sub
     End If
 
-    ' Zkusit načíst list PromoConfig z TargetWorkbook (u�ivatelskí soubor)
+    ' Zkusit načíst list PromoConfig z TargetWorkbook (uživatelský soubor)
     Dim ws As Worksheet
     On Error Resume Next
     Set ws = TargetWorkbook.Sheets("PromoConfig")
@@ -469,14 +469,14 @@ Public Sub LoadFCTypesToListBox()
 
     Debug.Print "List PromoConfig nalezen v: " & TargetWorkbook.Name
 
-    ' Najít sloupec FC_Type (N nebo pojmenovaní rozsah)
+    ' Najít sloupec FC_Type (N nebo pojmenovaný rozsah)
     Dim lastRow As Long
     lastRow = ws.Cells(ws.rows.Count, "N").End(xlUp).row
 
     Debug.Print "Poslední řádek ve sloupci FC_Type: " & lastRow
 
     If lastRow < 2 Then
-        Debug.Print "Ve sloupci FC_Type nejsou žádné data!"
+        Debug.Print "Ve sloupci FC_Type nejsou žádná data!"
         Exit Sub
     End If
 
@@ -497,7 +497,7 @@ Public Sub LoadFCTypesToListBox()
     ' PŘIDÁNO: Pokud je jen jedna hodnota, automaticky ji vybrat
     If Me.LB_FC.ListCount = 1 Then
         Me.LB_FC.ListIndex = 0
-        Debug.Print "Automaticky vybrána jediní hodnota: " & Me.LB_FC.value
+        Debug.Print "Automaticky vybrána jediná hodnota: " & Me.LB_FC.value
     End If
 
     Exit Sub
@@ -572,31 +572,31 @@ End Sub
 
 Public Sub LoadData()
     On Error GoTo ErrorHandler
-    
-    ' Kontrola, že prom�nní jsou nastavení
+
+    ' Kontrola, že proměnné jsou nastaveny
     If TargetWorkbook Is Nothing Then
         MsgBox "TargetWorkbook není nastaven!", vbCritical
         Exit Sub
     End If
-    
+
     If SelectedRange Is Nothing Then
         MsgBox "SelectedRange není nastaven!", vbCritical
         Exit Sub
     End If
-    
+
     ' Načte Products do kolekce
     Call ProductsArray(TargetWorkbook)
-    
+
     ' Získá family hodnotu
     Dim selectedFamily As String
     selectedFamily = SelectedRange.Worksheet.Cells(SelectedRange.row, 3).value
-    
+
     ' Naplní LB_Product produkty z dané family
     LB_Product.Clear
-    
+
     Dim rowData As Object
     Dim productText As String
-    
+
     For Each rowData In ProductsCollection
         If rowData.Exists("Family") Then
             If rowData("Family") = selectedFamily Then
@@ -607,55 +607,55 @@ Public Sub LoadData()
             End If
         End If
     Next rowData
-    
-    ' Ozna�í všechny produkty
+
+    ' Označí všechny produkty
     Dim j As Long
     For j = 0 To LB_Product.ListCount - 1
         LB_Product.Selected(j) = True
     Next j
-    
+
     Exit Sub
-    
+
 ErrorHandler:
     MsgBox "Chyba v LoadData: " & Err.Description, vbCritical
 End Sub
 
 Public Sub PromoSet()
     On Error GoTo ErrorHandler
-    
+
     Debug.Print "=== PromoSet START ==="
-    
+
     ' Načíst data
     Call ProductsArray(TargetWorkbook)
     Call WeeksArray(TargetWorkbook, SelectedRange)
-    
-    Debug.Print "Vytvříím Promo instanci..."
+
+    Debug.Print "Vytvářím Promo instanci..."
     Set Promo = CreatePromoInstance()
-    
+
     If Promo Is Nothing Then
-        MsgBox "Nepodařilo se vytvo�it Promo instanci!", vbCritical
+        MsgBox "Nepodařilo se vytvořit Promo instanci!", vbCritical
         Exit Sub
     End If
-    
-    Debug.Print "Promo vytvoženo: " & Not (Promo Is Nothing)
-    
+
+    Debug.Print "Promo vytvořeno: " & Not (Promo Is Nothing)
+
     Dim selectedPromo As String
     selectedPromo = Me.LB_Promoce.value
-    
-    Debug.Print "Vybraní promoce z ListBoxu: " & selectedPromo
-    
-    ' ZMĚNA: Volat sd�lenou funkci a pžedat flag pro plán
+
+    Debug.Print "Vybraná promoce z ListBoxu: " & selectedPromo
+
+    ' ZMĚNA: Volat sdílenou funkci a předat flag pro plán
     Dim usePlanColor As Boolean
     usePlanColor = Me.CB_Plan.value
-    
+
     If Not SetupPromoByListBoxValue_Shared(selectedPromo, SelectedRange, Promo, TargetWorkbook, usePlanColor) Then
         MsgBox "Chyba při nastavení promoce!", vbCritical
         Exit Sub
     End If
-    
+
     Debug.Print "=== PromoSet END ==="
     Exit Sub
-    
+
 ErrorHandler:
     Debug.Print "CHYBA v PromoSet: " & Err.Description & " na řádku " & Erl
     MsgBox "Chyba v PromoSet: " & Err.Description
@@ -667,12 +667,12 @@ Private Sub LB_Price_Change()
 End Sub
 
 Function GetRGBColor(r As Long, g As Long, b As Long) As Variant
-    ' Kontrola, zda je CheckBox 'CB_Plan' za�krtnut�
+    ' Kontrola, zda je CheckBox 'CB_Plan' zaškrtnutý
     If CB_Plan.value = True Then
-        ' Vrítí jednotnou žedou barvu
+        ' Vrátí jednotnou šedou barvu
         GetRGBColor = Array(180, 180, 180)
     Else
-        ' Vrítí původní barvy
+        ' Vrátí původní barvy
         GetRGBColor = Array(r, g, b)
     End If
 End Function
