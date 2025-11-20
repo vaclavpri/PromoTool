@@ -20,6 +20,7 @@ Private m_TargetWorkbook As Workbook
 
 Public Property Set TargetWorkbook(wb As Workbook)
     Set m_TargetWorkbook = wb
+    Call LoadPromoTypesToListBox
     Call LoadFCTypesToListBox
 End Property
 
@@ -386,46 +387,103 @@ ErrorHandler:
     MsgBox "Chyba při načtení produktů: " & Err.Description, vbCritical
 End Sub
 
+Public Sub LoadPromoTypesToListBox()
+    On Error GoTo ErrorHandler
+
+    ' Vyčistit ListBox
+    Me.LB_Promoce.Clear
+
+    ' Zkontrolovat, zda máme TargetWorkbook
+    If TargetWorkbook Is Nothing Then
+        Debug.Print "TargetWorkbook není nastaven!"
+        Exit Sub
+    End If
+
+    ' Zkusit načíst list PromoConfig z TargetWorkbook (uživatelský soubor)
+    Dim ws As Worksheet
+    On Error Resume Next
+    Set ws = TargetWorkbook.Sheets("PromoConfig")
+    On Error GoTo ErrorHandler
+
+    If ws Is Nothing Then
+        Debug.Print "List 'PromoConfig' nebyl nalezen v " & TargetWorkbook.Name
+        Exit Sub
+    End If
+
+    Debug.Print "List PromoConfig nalezen v: " & TargetWorkbook.Name
+
+    ' Najít poslední řádek ve sloupci A (Promo_Type)
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.rows.Count, "A").End(xlUp).row
+
+    Debug.Print "Poslední řádek ve sloupci Promo_Type: " & lastRow
+
+    If lastRow < 2 Then
+        Debug.Print "Ve sloupci Promo_Type nejsou žádná data!"
+        Exit Sub
+    End If
+
+    ' Projít všechny hodnoty ve sloupci A od řádku 2
+    Dim i As Long
+    Dim promoValue As String
+
+    For i = 2 To lastRow
+        promoValue = Trim(ws.Cells(i, "A").value)
+        If promoValue <> "" Then
+            Me.LB_Promoce.AddItem promoValue
+            Debug.Print "  Přidáno: " & promoValue
+        End If
+    Next i
+
+    Debug.Print "Načteno " & Me.LB_Promoce.ListCount & " hodnot do LB_Promoce"
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "CHYBA v LoadPromoTypesToListBox: " & Err.Description
+    MsgBox "Chyba při načtení Promo_Type: " & Err.Description, vbCritical
+End Sub
+
 Public Sub LoadFCTypesToListBox()
     On Error GoTo ErrorHandler
-    
+
     ' Vy�istit ListBox
     Me.LB_FC.Clear
-    
+
     ' Zkontrolovat, zda m�me TargetWorkbook
     If TargetWorkbook Is Nothing Then
         Debug.Print "TargetWorkbook není nastaven!"
         Exit Sub
     End If
-    
+
     ' Zkusit načíst list PromoConfig z TargetWorkbook (u�ivatelskí soubor)
     Dim ws As Worksheet
     On Error Resume Next
     Set ws = TargetWorkbook.Sheets("PromoConfig")
     On Error GoTo ErrorHandler
-    
+
     If ws Is Nothing Then
         Debug.Print "List 'PromoConfig' nebyl nalezen v " & TargetWorkbook.Name
         Exit Sub
     End If
-    
+
     Debug.Print "List PromoConfig nalezen v: " & TargetWorkbook.Name
-    
+
     ' Najít sloupec FC_Type (N nebo pojmenovaní rozsah)
     Dim lastRow As Long
     lastRow = ws.Cells(ws.rows.Count, "N").End(xlUp).row
-    
+
     Debug.Print "Poslední řádek ve sloupci FC_Type: " & lastRow
-    
+
     If lastRow < 2 Then
         Debug.Print "Ve sloupci FC_Type nejsou žádné data!"
         Exit Sub
     End If
-    
+
     ' Projít všechny hodnoty ve sloupci FC_Type (N) od řádku 2
     Dim i As Long
     Dim fcValue As String
-    
+
     For i = 2 To lastRow
         fcValue = Trim(ws.Cells(i, "N").value)
         If fcValue <> "" Then
@@ -433,43 +491,30 @@ Public Sub LoadFCTypesToListBox()
             Debug.Print "  Přidáno: " & fcValue
         End If
     Next i
-    
+
     Debug.Print "Načteno " & Me.LB_FC.ListCount & " hodnot do LB_FC"
-    
+
     ' PŘIDÁNO: Pokud je jen jedna hodnota, automaticky ji vybrat
     If Me.LB_FC.ListCount = 1 Then
         Me.LB_FC.ListIndex = 0
         Debug.Print "Automaticky vybrána jediní hodnota: " & Me.LB_FC.value
     End If
-    
+
     Exit Sub
-    
+
 ErrorHandler:
     Debug.Print "CHYBA v LoadFCTypesToListBox: " & Err.Description
     MsgBox "Chyba při načtení FC_Type: " & Err.Description, vbCritical
 End Sub
 Private Sub UserForm_Initialize()
-    ' Nastavit pouze základní vlastnosti ListBox�
-    ' NEPOUříVAT TargetWorkbook nebo SelectedRange zde!
-    
-    Call LoadFCTypesToListBox
+    ' Nastavit pouze základní vlastnosti ListBoxů
+    ' NEPOUŽÍVAT TargetWorkbook nebo SelectedRange zde!
+
     With LB_Promoce
         .MultiSelect = fmMultiSelectSingle
         .ListStyle = fmListStyleOption
-        .AddItem "Let�k"
-        .AddItem "Let�k + Tich�"
-        .AddItem "Tichí promoce"
-        .AddItem "Titulka"
-        .AddItem "Titulka + Tich�"
-        .AddItem "WOW Page"
-        .AddItem "WOW Page + Tich�"
-        .AddItem "WOW okno"
-        .AddItem "WOW okno + Tich�"
-        .AddItem "1denní"
-        .AddItem "V�kendov�"
-        .AddItem "Vklad"
     End With
-    
+
     With LB_Price
         .MultiSelect = fmMultiSelectSingle
         .ListStyle = fmListStyleOption
@@ -478,44 +523,49 @@ Private Sub UserForm_Initialize()
         .AddItem "TANCD II"
         .AddItem "TANCD III"
     End With
-    
+
     With LB_Product
         .MultiSelect = fmMultiSelectMulti
         .ListStyle = fmListStyleOption
     End With
-    
+
     With LB_Hero
         .MultiSelect = fmMultiSelectSingle
         .ListStyle = fmListStyleOption
     End With
-        
+
     With LB_FC
         .MultiSelect = fmMultiSelectSingle
         .ListStyle = fmListStyleOption
     End With
-            
+
 End Sub
 
 Private Sub UserForm_Activate()
     Static initialized As Boolean
-    
+
     If Not initialized Then
-        Debug.Print "=== UserForm_Activate - první spuít�ní ==="
-        
+        Debug.Print "=== UserForm_Activate - první spuštění ==="
+
+        ' Načíst typy promocí
+        If LB_Promoce.ListCount = 0 Then
+            Call LoadPromoTypesToListBox
+        End If
+
         ' Načíst FC typy
         If LB_FC.ListCount = 0 Then
             Call LoadFCTypesToListBox
         End If
-        
+
         ' PŘIDAT: Vybrat první cenu, pokud je jen jedna
         If LB_Price.ListCount = 1 Then
             LB_Price.ListIndex = 0
-            Debug.Print "Automaticky vybrána jediní cena: " & LB_Price.value
+            Debug.Print "Automaticky vybrána jediná cena: " & LB_Price.value
         End If
-        
+
         ' Načíst produkty
         Call LoadProducts
-        
+
         initialized = True
     End If
 End Sub
